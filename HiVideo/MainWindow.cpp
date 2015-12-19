@@ -37,8 +37,8 @@ namespace e
 
 	CMainWindow::~CMainWindow(void)
 	{
-		if (m_pVideoMatting) delete m_pVideoMatting;
 		if (m_pVideoDevice) delete m_pVideoDevice;
+		if (m_pVideoMatting) delete m_pVideoMatting;
 	}
 
 	void CMainWindow::Init(void)
