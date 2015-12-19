@@ -15,6 +15,7 @@
 // TODO:  在此处引用程序需要的其他头文件
 #include "libutils.h"
 #include "streams.h"
+#include "libmatting.h"
 #include "UIlib.h"
 using namespace e;
 using namespace DuiLib;
@@ -22,10 +23,12 @@ using namespace DuiLib;
 #ifdef _DEBUG
 #pragma comment(lib, "libutilsd.lib")
 #pragma comment(lib, "libstreamd.lib")
+#pragma comment(lib, "libmattingd.lib")
 #pragma comment(lib, "libduid.lib")
 #else
 #pragma comment(lib, "libutils.lib")
 #pragma comment(lib, "libstream.lib")
+#pragma comment(lib, "libmatting.lib")
 #pragma comment(lib, "libdui.lib")
 #endif
 

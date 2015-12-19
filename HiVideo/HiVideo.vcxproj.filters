@@ -13,14 +13,14 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="camera">
+    <Filter Include="Camera">
       <UniqueIdentifier>{855926c3-26d0-46d1-b646-1e4a071ce1d6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ui">
-      <UniqueIdentifier>{f321f551-e4e2-4fd3-b44e-635f4116ce77}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="curve">
+    <Filter Include="Curve">
       <UniqueIdentifier>{7da349d0-e170-4307-afc2-9c30474a7984}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{f321f551-e4e2-4fd3-b44e-635f4116ce77}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -31,28 +31,28 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="VideoRender.cpp">
-      <Filter>camera</Filter>
+      <Filter>Camera</Filter>
     </ClCompile>
     <ClCompile Include="VideoDevice.cpp">
-      <Filter>camera</Filter>
+      <Filter>Camera</Filter>
     </ClCompile>
     <ClCompile Include="FFScale.cpp">
-      <Filter>camera</Filter>
+      <Filter>Camera</Filter>
     </ClCompile>
     <ClCompile Include="UICurve.cpp">
-      <Filter>ui</Filter>
+      <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="UIVideo.cpp">
-      <Filter>ui</Filter>
+      <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="MainWindow.cpp">
-      <Filter>ui</Filter>
+      <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="CurvesConfig.cpp">
-      <Filter>curve</Filter>
+      <Filter>Curve</Filter>
     </ClCompile>
     <ClCompile Include="SplineCurve.cpp">
-      <Filter>curve</Filter>
+      <Filter>Curve</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -63,34 +63,34 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="VideoRender.h">
-      <Filter>camera</Filter>
+      <Filter>Camera</Filter>
     </ClInclude>
     <ClInclude Include="VideoDevice.h">
-      <Filter>camera</Filter>
+      <Filter>Camera</Filter>
     </ClInclude>
     <ClInclude Include="IVideoDevice.h">
-      <Filter>camera</Filter>
+      <Filter>Camera</Filter>
     </ClInclude>
     <ClInclude Include="GUIDDefs.h">
-      <Filter>camera</Filter>
+      <Filter>Camera</Filter>
     </ClInclude>
     <ClInclude Include="FFScale.h">
-      <Filter>camera</Filter>
+      <Filter>Camera</Filter>
     </ClInclude>
     <ClInclude Include="UICurve.h">
-      <Filter>ui</Filter>
+      <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="UIVideo.h">
-      <Filter>ui</Filter>
+      <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="MainWindow.h">
-      <Filter>ui</Filter>
+      <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="CurvesConfig.h">
-      <Filter>curve</Filter>
+      <Filter>Curve</Filter>
     </ClInclude>
     <ClInclude Include="SplineCurve.h">
-      <Filter>curve</Filter>
+      <Filter>Curve</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
