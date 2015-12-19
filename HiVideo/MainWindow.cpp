@@ -30,10 +30,14 @@ namespace e
 		HRESULT hr;
 		m_pVideoDevice = new CVideoDevice(&hr);
 		ASSERT(m_pVideoDevice);
+
+		m_bVideoMatting = false;
+		m_pVideoMatting = new CVideoMatting();
 	}
 
 	CMainWindow::~CMainWindow(void)
 	{
+		if (m_pVideoMatting) delete m_pVideoMatting;
 		if (m_pVideoDevice) delete m_pVideoDevice;
 	}
 
@@ -185,12 +189,26 @@ namespace e
 				OnVideoStart();
 			}else if (msg.pSender->GetName() == _T("btn_video_stop")){
 				OnVideoStop();
+			}else if (msg.pSender->GetName() == _T("btn_video_matting")){
+				OnVideoMatting();
 			}
 		}
 	}
 	//////////////////////////////////////////////////////////////////////////
 	//----------------------------------------Camera--------------------------------------------------
 	//////////////////////////////////////////////////////////////////////////
+	bool CMainWindow::InitVideo(void)
+	{
+		HRESULT hr;
+		hr = m_pVideoDevice->GetCaptureDeviceNames(this);
+		if (FAILED(hr)) return false;
+
+		auto pDeviceName = static_cast<DuiLib::CComboUI*>(m_pm.FindControl(_T("com_device_list")))->GetText();
+		hr = m_pVideoDevice->GetCaptureDeviceFormats(pDeviceName, this);
+
+		return SUCCEEDED(hr);
+	}
+
 	void CMainWindow::OnAddDevice(const TCHAR* pszDeviceName)
 	{
 		CListLabelElementUI* pLabel = new CListLabelElementUI();
@@ -212,19 +230,11 @@ namespace e
 	void CMainWindow::OnAddSample(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
 	{
 		static auto pControl = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("ctrl_video")));
+		if (m_bVideoMatting)
+		{
+			m_pVideoMatting->OnSampleProc(pData, nSize, nWidth, nHeight, nBitCount);
+		}
 		pControl->DoRenderSample(pData, nWidth, nHeight, nBitCount);
-	}
-
-	bool CMainWindow::InitVideo(void)
-	{
-		HRESULT hr;
-		hr = m_pVideoDevice->GetCaptureDeviceNames(this);
-		if (FAILED(hr)) return false;
-
-		auto pDeviceName = static_cast<DuiLib::CComboUI*>(m_pm.FindControl(_T("com_device_list")))->GetText();
-		hr = m_pVideoDevice->GetCaptureDeviceFormats(pDeviceName, this);
-		
-		return SUCCEEDED(hr);
 	}
 
 	void CMainWindow::OnVideoStart(void)
@@ -244,5 +254,10 @@ namespace e
 
 		auto pControl = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("ctrl_video")));
 		pControl->DoRenderSample(0xFF00FF00);
+	}
+
+	void CMainWindow::OnVideoMatting(void)
+	{
+		m_bVideoMatting = !m_bVideoMatting;
 	}
 }

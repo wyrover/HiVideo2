@@ -6,10 +6,14 @@ namespace e
 	class CVideoMatting
 	{
 	public:
-		CVideoMatting();
-		virtual ~CVideoMatting();
+		CVideoMatting(void);
+		virtual ~CVideoMatting(void);
+		void OnSampleProc(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
 	protected:
-		int x;
-		CBitmap* m_pBitmap;
+		CBitmap* GetBitmap(int nIndex);
+		void SwapBitmap(void);
+	protected:
+		int m_nNumberOfBitmap;
+		CBitmap** m_pBitmaps;
 	};
 }

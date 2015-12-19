@@ -38,9 +38,12 @@ namespace e
 		bool InitVideo(void);
 		void OnVideoStart(void);
 		void OnVideoStop(void);
+		void OnVideoMatting(void);
 
 	protected:
 		CPaintManagerUI m_pm;
 		CVideoDevice* m_pVideoDevice;
+		BOOL m_bVideoMatting;
+		CVideoMatting* m_pVideoMatting;
 	};
 }
