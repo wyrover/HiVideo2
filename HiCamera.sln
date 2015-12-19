@@ -1,0 +1,45 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libutils", "libutils\libutils.vcxproj", "{C432B742-F4A2-48C1-971D-EE76E242F684}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HiCamera", "HiCamera\HiCamera.vcxproj", "{80E50B35-B789-43DB-94B9-E5E2899F54E7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C432B742-F4A2-48C1-971D-EE76E242F684} = {C432B742-F4A2-48C1-971D-EE76E242F684}
+		{F9DDEA9A-1325-4CA7-9532-6A09ADB0B0CE} = {F9DDEA9A-1325-4CA7-9532-6A09ADB0B0CE}
+		{E62C71A0-1BE7-415C-8246-4CFE4279111C} = {E62C71A0-1BE7-415C-8246-4CFE4279111C}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libstream", "libstream\libstream.vcxproj", "{E62C71A0-1BE7-415C-8246-4CFE4279111C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libdui", "libdui\libdui.vcxproj", "{F9DDEA9A-1325-4CA7-9532-6A09ADB0B0CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C432B742-F4A2-48C1-971D-EE76E242F684}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C432B742-F4A2-48C1-971D-EE76E242F684}.Debug|Win32.Build.0 = Debug|Win32
+		{C432B742-F4A2-48C1-971D-EE76E242F684}.Release|Win32.ActiveCfg = Release|Win32
+		{C432B742-F4A2-48C1-971D-EE76E242F684}.Release|Win32.Build.0 = Release|Win32
+		{80E50B35-B789-43DB-94B9-E5E2899F54E7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{80E50B35-B789-43DB-94B9-E5E2899F54E7}.Debug|Win32.Build.0 = Debug|Win32
+		{80E50B35-B789-43DB-94B9-E5E2899F54E7}.Release|Win32.ActiveCfg = Release|Win32
+		{80E50B35-B789-43DB-94B9-E5E2899F54E7}.Release|Win32.Build.0 = Release|Win32
+		{E62C71A0-1BE7-415C-8246-4CFE4279111C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E62C71A0-1BE7-415C-8246-4CFE4279111C}.Debug|Win32.Build.0 = Debug|Win32
+		{E62C71A0-1BE7-415C-8246-4CFE4279111C}.Release|Win32.ActiveCfg = Release|Win32
+		{E62C71A0-1BE7-415C-8246-4CFE4279111C}.Release|Win32.Build.0 = Release|Win32
+		{F9DDEA9A-1325-4CA7-9532-6A09ADB0B0CE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F9DDEA9A-1325-4CA7-9532-6A09ADB0B0CE}.Debug|Win32.Build.0 = Debug|Win32
+		{F9DDEA9A-1325-4CA7-9532-6A09ADB0B0CE}.Release|Win32.ActiveCfg = Release|Win32
+		{F9DDEA9A-1325-4CA7-9532-6A09ADB0B0CE}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

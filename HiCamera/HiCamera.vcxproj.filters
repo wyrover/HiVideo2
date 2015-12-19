@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="camera">
+      <UniqueIdentifier>{855926c3-26d0-46d1-b646-1e4a071ce1d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui">
+      <UniqueIdentifier>{f321f551-e4e2-4fd3-b44e-635f4116ce77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="curve">
+      <UniqueIdentifier>{7da349d0-e170-4307-afc2-9c30474a7984}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="HiCamera.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoRender.cpp">
+      <Filter>camera</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoDevice.cpp">
+      <Filter>camera</Filter>
+    </ClCompile>
+    <ClCompile Include="FFScale.cpp">
+      <Filter>camera</Filter>
+    </ClCompile>
+    <ClCompile Include="UICurve.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="UIVideo.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="MainWindow.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="CurvesConfig.cpp">
+      <Filter>curve</Filter>
+    </ClCompile>
+    <ClCompile Include="SplineCurve.cpp">
+      <Filter>curve</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoRender.h">
+      <Filter>camera</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoDevice.h">
+      <Filter>camera</Filter>
+    </ClInclude>
+    <ClInclude Include="IVideoDevice.h">
+      <Filter>camera</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIDDefs.h">
+      <Filter>camera</Filter>
+    </ClInclude>
+    <ClInclude Include="FFScale.h">
+      <Filter>camera</Filter>
+    </ClInclude>
+    <ClInclude Include="UICurve.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="UIVideo.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="MainWindow.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="CurvesConfig.h">
+      <Filter>curve</Filter>
+    </ClInclude>
+    <ClInclude Include="SplineCurve.h">
+      <Filter>curve</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
