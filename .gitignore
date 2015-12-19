@@ -14,6 +14,8 @@
 /lib/libstreamd.lib
 /lib/libmatting.lib
 /lib/libmattingd.lib
+/lib/libeffectd.lib
+/lib/libeffect.lib
 *.suo
 *.sdf
 *.opensdf

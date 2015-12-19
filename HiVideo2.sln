@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HiVideo", "HiVideo\HiVideo.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libmatting", "libmatting\libmatting.vcxproj", "{63ECB63E-D659-40D5-8467-8960EE764515}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libeffect", "libeffect\libeffect.vcxproj", "{BF9053D8-37DE-4501-A4C4-F0DB0F00A999}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -45,6 +47,10 @@ Global
 		{63ECB63E-D659-40D5-8467-8960EE764515}.Debug|Win32.Build.0 = Debug|Win32
 		{63ECB63E-D659-40D5-8467-8960EE764515}.Release|Win32.ActiveCfg = Release|Win32
 		{63ECB63E-D659-40D5-8467-8960EE764515}.Release|Win32.Build.0 = Release|Win32
+		{BF9053D8-37DE-4501-A4C4-F0DB0F00A999}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BF9053D8-37DE-4501-A4C4-F0DB0F00A999}.Debug|Win32.Build.0 = Debug|Win32
+		{BF9053D8-37DE-4501-A4C4-F0DB0F00A999}.Release|Win32.ActiveCfg = Release|Win32
+		{BF9053D8-37DE-4501-A4C4-F0DB0F00A999}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
