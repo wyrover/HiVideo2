@@ -18,13 +18,12 @@ namespace e
 	HRESULT GetPinCountForOneType(IUnknown* pUnk, PIN_DIRECTION direction, LPDWORD pPinCount);
 	HRESULT GetAMCaptureConfig(IUnknown* pUnk, PIN_DIRECTION direction, IAMStreamConfig** ppConfig);
 	HRESULT GetAMCaptureFormats(IAMStreamConfig* pConfig, std::vector<AM_MEDIA_TYPE>& refFormatList);
+	HRESULT RemoveFilter(IGraphBuilder* pGraphBuilder, IBaseFilter* pBaseFilter);
 
-	template<typename T> void SafeRelease(T** pp)
+	template<typename T> 
+	void SafeRelease(T** pp)
 	{
-		if (*pp)
-		{
-			(*pp)->Release();
-		}
+		if (*pp) (*pp)->Release();
 		*pp = NULL;
 	}
 }

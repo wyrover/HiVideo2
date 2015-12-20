@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Camera">
-      <UniqueIdentifier>{855926c3-26d0-46d1-b646-1e4a071ce1d6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Curve">
       <UniqueIdentifier>{7da349d0-e170-4307-afc2-9c30474a7984}</UniqueIdentifier>
     </Filter>
@@ -29,15 +26,6 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="VideoRender.cpp">
-      <Filter>Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="VideoDevice.cpp">
-      <Filter>Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="FFScale.cpp">
-      <Filter>Camera</Filter>
     </ClCompile>
     <ClCompile Include="UICurve.cpp">
       <Filter>UI</Filter>
@@ -61,21 +49,6 @@
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoRender.h">
-      <Filter>Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoDevice.h">
-      <Filter>Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="IVideoDevice.h">
-      <Filter>Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="GUIDDefs.h">
-      <Filter>Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="FFScale.h">
-      <Filter>Camera</Filter>
     </ClInclude>
     <ClInclude Include="UICurve.h">
       <Filter>UI</Filter>

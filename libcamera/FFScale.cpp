@@ -1,4 +1,4 @@
-//#include "stdafx.h"
+#include "stdafx.h"
 #include "FFScale.h"
 #pragma comment(lib, "libgcc.lib")
 #pragma comment(lib, "libmingwex.lib")

@@ -11,15 +11,15 @@ namespace e
 		virtual ~CVideoDevice(void);
 	public:
 		//Enum Device Config
-		HRESULT GetCaptureDeviceNames(IVideoDevice* pDeviceCallback);
-		HRESULT GetCaptureDeviceFormats(LPCTSTR lpDeviceName, IVideoFormat* pFormatCallback);
+		HRESULT GetCaptureDeviceNames(IVideoDevice* pCallback);
+		HRESULT GetCaptureDeviceFormats(LPCTSTR lpDeviceName, IVideoFormat* pCallback);
 		//Get Current Device info
-		HRESULT GetCurrentDeviceFormats(IVideoFormat* pFormatCallback);
+		HRESULT GetCurrentDeviceFormats(IVideoFormat* pCallback);
 		HRESULT GetCurrentOutputDevice(LPTSTR lpDeviceName);
 		HRESULT GetCurrentOutputFormat(LPTSTR lpDeviceFormat);
 		HRESULT SetCurrentOutputFormat(int nWidth, int nHeight, VideoType eType = YUY2);
 		//device operation
-		HRESULT Create(LPCTSTR lpDeviceName, IVideoSample* pSampleCallback);
+		HRESULT Create(LPCTSTR lpDeviceName, IVideoSample* pCallback);
 		HRESULT Start(void);
 		HRESULT Pause(void);
 		HRESULT Stop(void);
@@ -27,15 +27,18 @@ namespace e
 	protected:
 		HRESULT CreateCapture(LPCTSTR lpDeviceName, IBaseFilter** ppCapture);
 		HRESULT CreateDecoder(VideoType eType, IBaseFilter** ppDecoder);
-		HRESULT CreateRender(IVideoSample* pSampleCallback, IBaseFilter** ppRender);
+		HRESULT CreateRender(IVideoSample* pCallback, IBaseFilter** ppRender);
 		HRESULT SetDefaultConfig(void);
 		HRESULT GetSubtype(VideoType eType, GUID& subtype);
 		HRESULT GetSubtypeName(REFGUID subtype, LPTSTR lpTypeName);
 		HRESULT GetVideoTypeName(VideoType eType, LPTSTR lpTypeName);
 		HRESULT SetCaptureConfig(IBaseFilter* pCapture, int nWidth, int nHeight);
+		enum DeviceState{ Unbuilde, Builded, Stopped, Paused, Running };
+		DeviceState GetState(void) const { return m_eState; }
 	protected:
-		TCHAR m_szDeviceName[MAX_PATH];
+		DeviceState m_eState;
 		//directshow filter
+		TCHAR m_szDeviceName[MAX_PATH];
 		IGraphBuilder* m_pGraphBuilder;
 		ICaptureGraphBuilder2* m_pCaptureGraphBuilder2;
 		IBaseFilter* m_pVideoCapture;

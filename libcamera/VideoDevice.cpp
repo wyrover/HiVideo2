@@ -7,6 +7,7 @@ namespace e
 {
 	CVideoDevice::CVideoDevice( HRESULT* phr)
 	{
+		m_eState = Unbuilde;
 		m_pGraphBuilder = NULL;
 		m_pVideoCapture = NULL;
 		m_pVideoDecoder = NULL;
@@ -20,7 +21,6 @@ namespace e
 
 	CVideoDevice::~CVideoDevice(void)
 	{
-		Stop();
 		Destroy();
 	}
 
@@ -302,6 +302,11 @@ _out:
 	HRESULT CVideoDevice::Create(LPCTSTR lpDeviceName,IVideoSample* pSampleCallback)
 	{
 		CheckPointer(lpDeviceName, E_INVALIDARG);
+		if (m_eState != Unbuilde)
+		{
+			ASSERT(SUCCEEDED(Destroy()));
+		}
+
 		HRESULT hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&m_pGraphBuilder);
 		if (FAILED(hr)) return hr;
 
@@ -346,19 +351,24 @@ _out:
 
 		hr = m_pGraphBuilder->QueryInterface(IID_IMediaControl, (void**)&m_pMediaControl);
 		if (FAILED(hr)) return hr;
-
+		
+		m_eState = Builded;
 		return Pause();
 	}
 
 	HRESULT CVideoDevice::Start(void)
 	{
 		CheckPointer(m_pMediaControl, E_POINTER);
+		if (m_eState == Running) return S_FALSE;
 		OAFilterState fs;
 		HRESULT hr = m_pMediaControl->GetState(0, &fs);
 		if (SUCCEEDED(hr))
 		{
 			if (fs != State_Running)
+			{
 				hr = m_pMediaControl->Run();
+				if (SUCCEEDED(hr)) m_eState = Running;
+			}
 		}
 		return hr;
 	}
@@ -366,12 +376,16 @@ _out:
 	HRESULT CVideoDevice::Pause(void)
 	{
 		CheckPointer(m_pMediaControl, E_POINTER);
+		if (m_eState == Paused) return S_FALSE;
 		OAFilterState fs;
 		HRESULT hr = m_pMediaControl->GetState(0, &fs);
 		if (SUCCEEDED(hr))
 		{
 			if (fs != State_Paused)
+			{
 				hr = m_pMediaControl->Pause();
+				if (SUCCEEDED(hr)) m_eState = Paused;
+			}
 		}
 		return hr;
 	}
@@ -379,24 +393,44 @@ _out:
 	HRESULT CVideoDevice::Stop(void)
 	{
 		CheckPointer(m_pMediaControl, E_POINTER);
+		if (m_eState == Stopped) return S_FALSE;
 		OAFilterState fs;
 		HRESULT hr = m_pMediaControl->GetState(0, &fs);
 		if (SUCCEEDED(hr))
 		{
 			if (fs != State_Stopped)
+			{
 				hr = m_pMediaControl->Stop();
+				if (SUCCEEDED(hr)) m_eState = Stopped;
+			}
 		}
 		return hr;
 	}
 
 	HRESULT CVideoDevice::Destroy(void)
 	{
+		Stop();
+
+		if (m_pVideoCapture)
+		{
+			RemoveFilter(m_pGraphBuilder, m_pVideoCapture);
+		}
+		if (m_pVideoDecoder)
+		{
+			RemoveFilter(m_pGraphBuilder, m_pVideoDecoder);
+		}
+		if (m_pVideoRender)
+		{
+			RemoveFilter(m_pGraphBuilder, m_pVideoRender);
+		}
+
 		SafeRelease(&m_pMediaControl);
 		SafeRelease(&m_pVideoCapture);
 		SafeRelease(&m_pVideoDecoder);
 		SafeRelease(&m_pVideoRender);
 		SafeRelease(&m_pCaptureGraphBuilder2);
 		SafeRelease(&m_pGraphBuilder);
+		m_eState = Unbuilde;
 		return S_OK;
 	}
 

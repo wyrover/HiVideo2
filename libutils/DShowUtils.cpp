@@ -7,6 +7,10 @@
 
 namespace e
 {
+#ifndef CheckPointer
+#define CheckPointer(p,ret) {if((p)==NULL) return (ret);}
+#endif
+
 	HRESULT EnumCaptures(REFCLSID CLSID_DeviceCategory, std::vector<TCaptureDevice>& refDeviceList)
 	{
 		refDeviceList.clear();
@@ -304,5 +308,45 @@ namespace e
 		}
 
 		return hr;
+	}
+
+	HRESULT RemoveFilter(IGraphBuilder* pGraphBuilder, IBaseFilter* pBaseFilter)
+	{
+		CheckPointer(pGraphBuilder, E_POINTER);
+		CheckPointer(pBaseFilter, E_PENDING);
+
+		IEnumPins *pEnumPins = NULL;
+		HRESULT hr = pBaseFilter->EnumPins(&pEnumPins);
+		if (FAILED(hr)) return hr;
+		pEnumPins->Reset();
+
+		IPin *pPinFrom = 0, *pPinTo = 0;
+		while ((hr = pEnumPins->Next(1, &pPinFrom, NULL)) == S_OK)
+		{
+			if (SUCCEEDED(hr))
+			{
+				hr = pPinFrom->ConnectedTo(&pPinTo);
+				if (SUCCEEDED(hr))
+				{
+					PIN_INFO info;
+					hr = pPinTo->QueryPinInfo(&info);
+					if (SUCCEEDED(hr))	
+					{
+						if (info.dir == PINDIR_INPUT)
+						{
+							RemoveFilter(pGraphBuilder, info.pFilter);
+							pGraphBuilder->Disconnect(pPinTo);
+							pGraphBuilder->Disconnect(pPinFrom);
+							pGraphBuilder->RemoveFilter(info.pFilter);
+						}
+						info.pFilter->Release();
+					}
+					pPinTo->Release();
+				}
+				pPinFrom->Release();
+			}
+		}
+		pEnumPins->Release();
+		return S_OK;
 	}
 }
