@@ -36,6 +36,9 @@
     <ClInclude Include="libutildefs.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="MemBlock.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -45,6 +48,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="DShowUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MemBlock.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "DShowUtils.h"
+#include "libutildefs.h"
 #include <strmif.h>
 #include <uuids.h>
 

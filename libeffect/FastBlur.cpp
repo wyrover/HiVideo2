@@ -52,7 +52,7 @@ namespace e
 		param.coefp = (param.a0 + param.a1) / (1.0f + param.b1 + param.b2);
 		param.coefn = (param.a2 + param.a3) / (1.0f + param.b1 + param.b2);
 	}
-
+	//simple recursive gaussian
 	void FastBlur32A(uint8* dst, uint8* src, int width, int height, int bitCount, float sigma)
 	{
 		int lineBytes0 = WidthBytes(bitCount * width);
@@ -107,7 +107,7 @@ namespace e
 			}
 		}
 	}
-
+	//normal recursive gaussian
 	void FastBlur32B(uint8* dst
 		, uint8* src
 		, int width
@@ -208,7 +208,7 @@ namespace e
 		}
 	}
 
-	void FastBlur32C(uint8* dst, uint8* src, int width, int height, int bitCount, float sigma, int mode)
+	void FastBlur32C(uint8* dst, uint8* src, int width, int height, int bitCount, float sigma, BlurMode mode)
 	{
 
 	}

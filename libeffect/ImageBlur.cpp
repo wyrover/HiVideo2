@@ -1,15 +1,15 @@
 #include "stdafx.h"
 #include "ImageBlur.h"
+#include "MemBlock.h"
 #include "FastBlur.h"
-
 
 namespace e
 {
 	CImageBlur::CImageBlur(void)
 	{
-		m_fSigma = 2.5f;
-		m_pBuffer = NULL;
-		m_nBufferSize = 0;
+		m_fSigma = 3.5f;
+		m_pBlockTemp = new CMemBlock();
+		assert(m_pBlockTemp);
 	}
 
 	CImageBlur::~CImageBlur(void)
@@ -19,23 +19,12 @@ namespace e
 
 	bool CImageBlur::Init(int nSize)
 	{
-		if (nSize <= 0) return false;
-		if (nSize > m_nBufferSize)
-		{
-			m_pBuffer = realloc(m_pBuffer, nSize);
-			if (m_pBuffer == NULL) return false;
-			m_nBufferSize = nSize;
-		}
-		return true;
+		return m_pBlockTemp->Create(nSize);
 	}
 
 	void CImageBlur::Clean(void)
 	{
-		if (m_pBuffer)
-		{
-			free(m_pBuffer);
-			m_pBuffer = NULL;
-		}
+		SafeDelete(&m_pBlockTemp);
 	}
 
 	void CImageBlur::SetConfig(IEffectConfig* pConfig)
@@ -51,7 +40,8 @@ namespace e
 	{
 		Init(nSize);
 
-		FastBlur(m_pBuffer, pData, nWidth, nHeight, nBitCount, m_fSigma, NormalSSE);
-		FastBlur(pData, m_pBuffer, nHeight, nWidth, nBitCount, m_fSigma, NormalSSE);
+		void* pTemp = m_pBlockTemp->GetData();
+		FastBlur(pTemp, pData, nWidth, nHeight, nBitCount, m_fSigma, NormalSSE);
+		FastBlur(pData, pTemp, nHeight, nWidth, nBitCount, m_fSigma, NormalSSE);
 	}
 }

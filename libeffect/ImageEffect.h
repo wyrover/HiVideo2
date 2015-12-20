@@ -29,8 +29,7 @@ namespace e
 		void Clean(void);
 	protected:
 		IEffectConfig* m_pConfig;
-
-		void* m_pBuffer;
 		IBaseEffect* m_pImageBlur;
+		CMemBlock* m_pBlockTemp;
 	};
 }

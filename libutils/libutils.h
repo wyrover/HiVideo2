@@ -3,6 +3,7 @@
 
 #include "libutildefs.h"
 #include "DShowUtils.h"
+#include "MemBlock.h"
 #include "Bitmap.h"
 
 #endif

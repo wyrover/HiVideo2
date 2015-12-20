@@ -35,5 +35,32 @@ namespace e
 #define WidthBytes(bits) ((((bits)+31) & (~31)) / 8)
 #endif
 
+	template<class T> void SafeFree(T** p)
+	{
+		if (*p)
+		{
+			free(*p);
+			*p = NULL;
+		}
+	}
+
+	template<class T> void SafeDelete(T** p)
+	{
+		if (*p)
+		{
+			delete *p;
+			*p = NULL;
+		}
+	}
+
+	template<class T> void SafeRelease(T** p)
+	{
+		if (*p)
+		{
+			(*p)->Release();
+			*p = NULL;
+		}
+	}
+
 }
 #endif

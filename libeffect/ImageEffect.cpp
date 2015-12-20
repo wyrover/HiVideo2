@@ -1,16 +1,16 @@
 #include "stdafx.h"
 #include "ImageEffect.h"
 #include "ImageBlur.h"
-#include "libutildefs.h"
 
 namespace e
 {
 	CImageEffect::CImageEffect()
 	{
 		m_pConfig = 0;
-		m_pBuffer = 0;
 		m_pImageBlur = new CImageBlur();
 		assert(m_pImageBlur);
+		m_pBlockTemp = new CMemBlock();
+		assert(m_pBlockTemp);
 	}
 
 	CImageEffect::~CImageEffect()
@@ -25,18 +25,13 @@ namespace e
 
 	bool CImageEffect::Init(int nSize)
 	{
-		m_pBuffer = malloc(nSize);
-		return m_pBuffer != 0;
+		return m_pBlockTemp->Create(nSize);
 	}
 
 	void CImageEffect::Clean(void)
 	{
-		if (m_pImageBlur)
-			delete m_pImageBlur;
-		m_pImageBlur = 0;
-		if (m_pBuffer) 
-			free(m_pBuffer);
-		m_pBuffer = 0;
+		SafeDelete(&m_pBlockTemp);
+		SafeDelete(&m_pImageBlur);
 	}
 
 	void CImageEffect::OnSampleProc(void* pData
@@ -45,12 +40,10 @@ namespace e
 		, int nHeight
 		, int nBitCount)
 	{
-		if (m_pBuffer == 0)
-		{
-			Init(nSize);
-		}
+		bool bRet = Init(nSize);
+		assert(bRet);
 
-		memcpy(m_pBuffer, pData, nSize);
+		m_pBlockTemp->SetData(pData, nSize);
 
 		m_pImageBlur->OnSampleProc(pData
 			, nSize
@@ -58,17 +51,23 @@ namespace e
 			, nHeight
 			, nBitCount);
 
-		int nLineSize = WidthBytes(nWidth * nBitCount);
-		uint8* pSrc = (uint8*)m_pBuffer;
+		return;
+
 		uint8* pDst = (uint8*)pData;
+		uint8* pSrc = (uint8*)m_pBlockTemp->GetData();
 		for (int y = 0; y < nHeight; y++)
 		{
 			for (int x = 0; x < nWidth; x++)
 			{
-				pDst[0] = abs(pSrc[0] - pDst[0]) + pDst[0];
-				pDst[1] = abs(pSrc[1] - pDst[1]) + pDst[1];
-				pDst[2] = abs(pSrc[2] - pDst[2]) + pDst[2];
-				pDst[3] = abs(pSrc[3] - pDst[3]) + pDst[3];
+// 				pDst[0] = abs(pSrc[0] - pDst[0]) + pDst[0];
+// 				pDst[1] = abs(pSrc[1] - pDst[1]) + pDst[1];
+// 				pDst[2] = abs(pSrc[2] - pDst[2]) + pDst[2];
+// 				pDst[3] = abs(pSrc[3] - pDst[3]) + pDst[3];
+
+				pDst[0] = abs(pSrc[0] - pDst[0]) + 128;
+				pDst[1] = abs(pSrc[1] - pDst[1]) + 128;
+				pDst[2] = abs(pSrc[2] - pDst[2]) + 128;
+				pDst[3] = abs(pSrc[3] - pDst[3]) + 128;
 
 				pSrc += 4;
 				pDst += 4;

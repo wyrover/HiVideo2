@@ -2,6 +2,8 @@
 #include "IBaseEffect.h"
 namespace e
 {
+	class CMemBlock;
+
 	class CImageBlur :
 		public IBaseEffect
 	{
@@ -19,8 +21,6 @@ namespace e
 		void Clean(void);
 	protected:
 		float m_fSigma;
-
-		void* m_pBuffer;
-		int  m_nBufferSize;
+		CMemBlock* m_pBlockTemp;
 	};
 }
