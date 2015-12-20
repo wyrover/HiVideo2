@@ -2,12 +2,14 @@
 #include "ImageBlur.h"
 #include "MemBlock.h"
 #include "FastBlur.h"
+#include <tchar.h>
 
 namespace e
 {
 	CImageBlur::CImageBlur(void)
 	{
-		m_fSigma = 3.5f;
+		m_nType = 0;
+		m_fSigma = 2.5f;
 		m_pBlockTemp = new CMemBlock();
 		assert(m_pBlockTemp);
 	}
@@ -27,6 +29,14 @@ namespace e
 		SafeDelete(&m_pBlockTemp);
 	}
 
+	void CImageBlur::SetType(int nType)
+	{
+		m_nType = nType;
+		TCHAR szMsg[256] = { 0 };
+		_stprintf_s(szMsg, 256, _T("blur type = %d\n"), nType);
+		OutputDebugString(szMsg);
+	}
+
 	void CImageBlur::SetConfig(IEffectConfig* pConfig)
 	{
 
@@ -41,7 +51,16 @@ namespace e
 		Init(nSize);
 
 		void* pTemp = m_pBlockTemp->GetData();
-		FastBlur(pTemp, pData, nWidth, nHeight, nBitCount, m_fSigma, NormalSSE);
-		FastBlur(pData, pTemp, nHeight, nWidth, nBitCount, m_fSigma, NormalSSE);
+
+		if (m_nType == 0)
+		{
+			FastBlur(pTemp, pData, nWidth, nHeight, nBitCount, m_fSigma, Normal);
+			FastBlur(pData, pTemp, nHeight, nWidth, nBitCount, m_fSigma, Normal);
+		}
+		else
+		{
+			FastBlur(pTemp, pData, nWidth, nHeight, nBitCount, m_fSigma, NormalSSE);
+			FastBlur(pData, pTemp, nHeight, nWidth, nBitCount, m_fSigma, NormalSSE);
+		}
 	}
 }

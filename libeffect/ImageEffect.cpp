@@ -18,6 +18,11 @@ namespace e
 		Clean();
 	}
 
+	void CImageEffect::SetType(int nType)
+	{
+		m_pImageBlur->SetType(nType);
+	}
+
 	void CImageEffect::SetConfig(IEffectConfig* pConfig)
 	{
 
@@ -32,6 +37,11 @@ namespace e
 	{
 		SafeDelete(&m_pBlockTemp);
 		SafeDelete(&m_pImageBlur);
+	}
+
+	inline uint8 mix(uint8 & a, uint8 & b, float & f)
+	{
+		return a * (1.0f - f) + b * f;
 	}
 
 	void CImageEffect::OnSampleProc(void* pData
@@ -50,24 +60,19 @@ namespace e
 			, nWidth
 			, nHeight
 			, nBitCount);
-
 		return;
 
+		float fAlpha = 0.7f;
 		uint8* pDst = (uint8*)pData;
 		uint8* pSrc = (uint8*)m_pBlockTemp->GetData();
 		for (int y = 0; y < nHeight; y++)
 		{
 			for (int x = 0; x < nWidth; x++)
 			{
-// 				pDst[0] = abs(pSrc[0] - pDst[0]) + pDst[0];
-// 				pDst[1] = abs(pSrc[1] - pDst[1]) + pDst[1];
-// 				pDst[2] = abs(pSrc[2] - pDst[2]) + pDst[2];
-// 				pDst[3] = abs(pSrc[3] - pDst[3]) + pDst[3];
-
-				pDst[0] = abs(pSrc[0] - pDst[0]) + 128;
-				pDst[1] = abs(pSrc[1] - pDst[1]) + 128;
-				pDst[2] = abs(pSrc[2] - pDst[2]) + 128;
-				pDst[3] = abs(pSrc[3] - pDst[3]) + 128;
+				pDst[0] = mix(pSrc[0], pDst[0], fAlpha);
+				pDst[1] = mix(pSrc[1], pDst[1], fAlpha);
+				pDst[2] = mix(pSrc[2], pDst[2], fAlpha);
+				pDst[3] = mix(pSrc[3], pDst[3], fAlpha);
 
 				pSrc += 4;
 				pDst += 4;

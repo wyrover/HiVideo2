@@ -196,6 +196,8 @@ namespace e
 				OnVideoStop();
 			}else if (msg.pSender->GetName() == _T("btn_video_matting")){
 				OnVideoMatting();
+			}else if (msg.pSender->GetName() == _T("btn_video_type")){
+				OnVideoType();
 			}
 		}
 	}
@@ -265,5 +267,12 @@ namespace e
 	void CMainWindow::OnVideoMatting(void)
 	{
 		m_bVideoMatting = !m_bVideoMatting;
+	}
+
+	void CMainWindow::OnVideoType(void)
+	{
+		static int nType = 0;
+		m_pVideoEffect->SetType(nType);
+		nType = !nType;
 	}
 }

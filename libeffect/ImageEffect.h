@@ -2,6 +2,8 @@
 #include "IBaseEffect.h"
 namespace e
 {
+	class CMemBlock;
+
 	class CImageEffectConfig 
 		: public IEffectConfig
 	{
@@ -9,15 +11,17 @@ namespace e
 		virtual void SetConfig(void* pConfig, int nSize);
 		virtual void GetConfig(void** ppConfig);
 	protected:
-
+		float m_fSigma;
+		float m_fAlpha;
 	};
 
 	class CImageEffect 
 		: public IBaseEffect
 	{
 	public:
-		CImageEffect();
-		virtual ~CImageEffect();
+		CImageEffect(void);
+		virtual ~CImageEffect(void);
+		virtual void SetType(int nType);
 		virtual void SetConfig(IEffectConfig* pConfig);
 		virtual void OnSampleProc(void* pData
 			, int nSize

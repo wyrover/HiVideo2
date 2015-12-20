@@ -10,6 +10,7 @@ namespace e
 	public:
 		CImageBlur(void);
 		virtual ~CImageBlur(void);
+		virtual void SetType(int nType);
 		virtual void SetConfig(IEffectConfig* pConfig);
 		virtual void OnSampleProc(void* pData
 			, int nSize
@@ -20,6 +21,7 @@ namespace e
 		bool Init(int nSize);
 		void Clean(void);
 	protected:
+		int m_nType;
 		float m_fSigma;
 		CMemBlock* m_pBlockTemp;
 	};

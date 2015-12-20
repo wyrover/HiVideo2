@@ -39,6 +39,7 @@ namespace e
 		void OnVideoStart(void);
 		void OnVideoStop(void);
 		void OnVideoMatting(void);
+		void OnVideoType(void);
 
 	protected:
 		CPaintManagerUI m_pm;

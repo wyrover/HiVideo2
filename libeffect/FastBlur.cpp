@@ -53,7 +53,72 @@ namespace e
 		param.coefn = (param.a2 + param.a3) / (1.0f + param.b1 + param.b2);
 	}
 	//simple recursive gaussian
-	void FastBlur32A(uint8* dst, uint8* src, int width, int height, int bitCount, float sigma)
+	void SimpleBlur32(uint8* dst, uint8* src, int width, int height, int bitCount, float sigma)
+	{
+		float a = CalcParam(sigma);
+
+		float yp[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		float xc[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		float yc[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+		int lineBytes0 = WidthBytes(bitCount * width);
+		int lineBytes1 = WidthBytes(bitCount * height);
+		int bpp = bitCount / 8;
+
+		for (int x = 0; x < width; x++)
+		{
+			uint8* p = src + x * bpp;
+			yp[0] = *(p + 0);
+			yp[1] = *(p + 1);
+			yp[2] = *(p + 2);
+
+			for (int y = 0; y < height; y++)
+			{
+				uint8* p0 = src + y * lineBytes0 + x * bpp;
+				uint8* p1 = dst + x * lineBytes1 + y * bpp;
+
+				xc[0] = *(p0 + 0);
+				xc[1] = *(p0 + 1);
+				xc[2] = *(p0 + 2);
+
+				yc[0] = xc[0] + (yp[0] - xc[0]) * a;
+				yc[1] = xc[1] + (yp[1] - xc[1]) * a;
+				yc[2] = xc[2] + (yp[2] - xc[2]) * a;
+
+				*(p1 + 0) = yp[0] = yc[0];
+				*(p1 + 1) = yp[1] = yc[1];
+				*(p1 + 2) = yp[2] = yc[2];
+			}
+
+			p = src + (height - 1) * lineBytes0 + x * bpp;
+			yp[0] = *(p + 0);
+			yp[1] = *(p + 1);
+			yp[2] = *(p + 2);
+
+			for (int y = height - 1; y >= 0; y--)
+			{
+				uint8* p0 = src + y * lineBytes0 + x * bpp;
+				uint8* p1 = dst + x * lineBytes1 + y * bpp;
+				xc[0] = *(p0 + 0);
+				xc[1] = *(p0 + 1);
+				xc[2] = *(p0 + 2);
+
+				yc[0] = xc[0] + (yp[0] - xc[0]) * a;
+				yc[1] = xc[1] + (yp[1] - xc[1]) * a;
+				yc[2] = xc[2] + (yp[2] - xc[2]) * a;
+
+				*(p1 + 0) = (*(p1 + 0) + yc[0]) * 0.5f;
+				*(p1 + 1) = (*(p1 + 1) + yc[1]) * 0.5f;
+				*(p1 + 2) = (*(p1 + 2) + yc[2]) * 0.5f;
+
+				yp[0] = yc[0];
+				yp[1] = yc[1];
+				yp[2] = yc[2];
+			}
+		}
+	}
+
+	void SimpleBlur32SSE(uint8* dst, uint8* src, int width, int height, int bitCount, float sigma)
 	{
 		int lineBytes0 = WidthBytes(bitCount * width);
 		int lineBytes1 = WidthBytes(bitCount * height);
@@ -108,7 +173,129 @@ namespace e
 		}
 	}
 	//normal recursive gaussian
-	void FastBlur32B(uint8* dst
+	void NormalBlur32(uint8* dst
+		, uint8* src
+		, int width
+		, int height
+		, int bitCount
+		, float a0
+		, float a1
+		, float a2
+		, float a3
+		, float b1
+		, float b2
+		, float coefp
+		, float coefn)
+	{
+		int lineBytes0 = WidthBytes(bitCount * width);
+		int lineBytes1 = WidthBytes(bitCount * height);
+		int bpp = bitCount / 8;
+
+		for (int x = 0; x < width; x++)
+		{
+			// start forward filter pass
+			float xp[4] = { 0.0f, 0.0f, 0.0f, 0.0f };  // previous input
+			float yp[4] = { 0.0f, 0.0f, 0.0f, 0.0f };  // previous output
+			float yb[4] = { 0.0f, 0.0f, 0.0f, 0.0f };  // previous output by 2
+
+			uint8* p0 = src + x * bpp;
+#ifdef CLAMP_TO_EDGE
+			xp[0] = *(p0 + 0);
+			xp[1] = *(p0 + 1);
+			xp[2] = *(p0 + 2);
+			//xp[3] = *(p0 + 3);
+
+			for (int i = 0; i < 4; i++)
+			{
+				yb[i] = xp[i] * coefp;
+				yp[i] = yb[i];
+			}
+#endif
+
+			float xc[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			float yc[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+			for (int y = 0; y < height; y++)
+			{
+				uint8* p0 = src + y * lineBytes0 + x * bpp;
+				uint8* p1 = dst + x * lineBytes1 + y * bpp;
+
+				xc[0] = *(p0 + 0);
+				xc[1] = *(p0 + 1);
+				xc[2] = *(p0 + 2);
+				//xc[3] = *(p0 + 3);
+
+				yc[0] = (a0 * xc[0]) + (a1 * xp[0]) - (b1 * yp[0]) - (b2 * yb[0]);
+				yc[1] = (a0 * xc[1]) + (a1 * xp[1]) - (b1 * yp[1]) - (b2 * yb[1]);
+				yc[2] = (a0 * xc[2]) + (a1 * xp[2]) - (b1 * yp[2]) - (b2 * yb[2]);
+				//yc[3] = (a0 * xc[3]) + (a1 * xp[3]) - (b1 * yp[3]) - (b2 * yb[3]);
+
+				*(p1 + 0) = yc[0];
+				*(p1 + 1) = yc[1];
+				*(p1 + 2) = yc[2];
+				//*(p1 + 3) = yc[3];
+
+				for (int i = 0; i < 4; i++)
+				{
+					xp[i] = xc[i];
+					yb[i] = yp[i];
+					yp[i] = yc[i];
+				}
+			}
+
+			// start reverse filter pass: ensures response is symmetrical
+			float xn[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			float xa[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			float yn[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			float ya[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+#ifdef CLAMP_TO_EDGE
+			p0 = src + (height - 1) * lineBytes0 + x * bpp;
+			xn[0] = *(p0 + 0);
+			xn[1] = *(p0 + 1);
+			xn[2] = *(p0 + 2);
+			//xn[3] = *(p0 + 3);
+
+			for (int i = 0; i < 4; i++)
+			{
+				xa[i] = xn[i];
+				yn[i] = xn[i] * coefn;
+				ya[i] = yn[i];
+			}
+#endif
+
+			for (int y = height - 1; y >= 0; y--)
+			{
+				uint8* p0 = src + y * lineBytes0 + x * bpp;
+				uint8* p1 = dst + x * lineBytes1 + y * bpp;
+
+				xc[0] = *(p0 + 0);
+				xc[1] = *(p0 + 1);
+				xc[2] = *(p0 + 2);
+				//xc[3] = *(p0 + 3);
+
+				yc[0] = (a2 * xn[0]) + (a3 * xa[0]) - (b1 * yn[0]) - (b2 * ya[0]);
+				yc[1] = (a2 * xn[1]) + (a3 * xa[1]) - (b1 * yn[1]) - (b2 * ya[1]);
+				yc[2] = (a2 * xn[2]) + (a3 * xa[2]) - (b1 * yn[2]) - (b2 * ya[2]);
+				//yc[3] = (a2 * xn[3]) + (a3 * xa[3]) - (b1 * yn[3]) - (b2 * ya[3]);
+
+				for (int i = 0; i < 4; i++)
+				{
+					xa[i] = xn[i];
+					xn[i] = xc[i];
+					ya[i] = yn[i];
+					yn[i] = yc[i];
+				}
+
+				*(p1 + 0) += yc[0];
+				*(p1 + 1) += yc[1];
+				*(p1 + 2) += yc[2];
+				//*(p1 + 3) += yc[3];
+			}
+		}
+	}
+
+	void NormalBlur32SSE(uint8* dst
 		, uint8* src
 		, int width
 		, int height
@@ -208,19 +395,22 @@ namespace e
 		}
 	}
 
-	void FastBlur32C(uint8* dst, uint8* src, int width, int height, int bitCount, float sigma, BlurMode mode)
-	{
-
-	}
-
 	void FastBlur(void* dst, void* src, int width, int height, int bitCount, float sigma, BlurMode mode)
 	{
-		if (mode == NormalSSE)
+		if (mode == Simple)
+		{
+			SimpleBlur32((uint8*)dst, (uint8*)src, width, height, bitCount, sigma);
+		}
+		else if (mode == SimpleSSE)
+		{
+			SimpleBlur32SSE((uint8*)dst, (uint8*)src, width, height, bitCount, sigma);
+		}
+		else if (mode == Normal)
 		{
 			GaussParams param;
 			CalcParam(sigma, param);
 
-			FastBlur32B((uint8*)dst
+			NormalBlur32((uint8*)dst
 				, (uint8*)src
 				, width
 				, height
@@ -234,9 +424,24 @@ namespace e
 				, param.coefp
 				, param.coefn);
 		}
-		else if (mode == SimpleSSE)
+		else if (mode == NormalSSE)
 		{
-			FastBlur32A((uint8*)dst, (uint8*)src, width, height, bitCount, sigma);
+			GaussParams param;
+			CalcParam(sigma, param);
+
+			NormalBlur32SSE((uint8*)dst
+				, (uint8*)src
+				, width
+				, height
+				, bitCount
+				, param.a0
+				, param.a1
+				, param.a2
+				, param.a3
+				, param.b1
+				, param.b2
+				, param.coefp
+				, param.coefn);
 		}
 	}
 }
