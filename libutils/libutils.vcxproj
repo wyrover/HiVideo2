@@ -85,6 +85,7 @@
     <ClInclude Include="Bitmap.h" />
     <ClInclude Include="DShowUtils.h" />
     <ClInclude Include="libutils.h" />
+    <ClInclude Include="Log.h" />
     <ClInclude Include="MemBlock.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -93,6 +94,7 @@
   <ItemGroup>
     <ClCompile Include="Bitmap.cpp" />
     <ClCompile Include="DShowUtils.cpp" />
+    <ClCompile Include="Log.cpp" />
     <ClCompile Include="MemBlock.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
