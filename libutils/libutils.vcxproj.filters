@@ -30,10 +30,10 @@
     <ClInclude Include="Bitmap.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="UtilsDefs.h">
+    <ClInclude Include="DShowUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DShowUtils.h">
+    <ClInclude Include="libutildefs.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

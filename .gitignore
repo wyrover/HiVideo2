@@ -16,6 +16,8 @@
 /lib/libmattingd.lib
 /lib/libeffectd.lib
 /lib/libeffect.lib
+/lib/libcamerad.lib
+/lib/libcamera.lib
 *.suo
 *.sdf
 *.opensdf

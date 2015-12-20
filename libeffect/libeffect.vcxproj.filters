@@ -30,9 +30,27 @@
     <ClInclude Include="IBaseEffect.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="FastBlur.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageEffect.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageBlur.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FastBlur.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageEffect.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBlur.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

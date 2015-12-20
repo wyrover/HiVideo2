@@ -33,12 +33,17 @@ namespace e
 
 		m_bVideoMatting = false;
 		m_pVideoMatting = new CVideoMatting();
+		ASSERT(m_pVideoMatting);
+
+		m_pVideoEffect = new CImageEffect();
+		ASSERT(m_pVideoEffect);
 	}
 
 	CMainWindow::~CMainWindow(void)
 	{
 		if (m_pVideoDevice) delete m_pVideoDevice;
 		if (m_pVideoMatting) delete m_pVideoMatting;
+		if (m_pVideoEffect) delete m_pVideoEffect;
 	}
 
 	void CMainWindow::Init(void)
@@ -232,7 +237,8 @@ namespace e
 		static auto pControl = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("ctrl_video")));
 		if (m_bVideoMatting)
 		{
-			m_pVideoMatting->OnSampleProc(pData, nSize, nWidth, nHeight, nBitCount);
+			//m_pVideoMatting->OnSampleProc(pData, nSize, nWidth, nHeight, nBitCount);
+			m_pVideoEffect->OnSampleProc(pData, nSize, nWidth, nHeight, nBitCount);
 		}
 		pControl->DoRenderSample(pData, nWidth, nHeight, nBitCount);
 	}

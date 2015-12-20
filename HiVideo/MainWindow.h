@@ -45,5 +45,6 @@ namespace e
 		CVideoDevice* m_pVideoDevice;
 		BOOL m_bVideoMatting;
 		CVideoMatting* m_pVideoMatting;
+		CImageEffect* m_pVideoEffect;
 	};
 }

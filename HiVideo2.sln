@@ -22,6 +22,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libmatting", "libmatting\libmatting.vcxproj", "{63ECB63E-D659-40D5-8467-8960EE764515}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libeffect", "libeffect\libeffect.vcxproj", "{BF9053D8-37DE-4501-A4C4-F0DB0F00A999}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C432B742-F4A2-48C1-971D-EE76E242F684} = {C432B742-F4A2-48C1-971D-EE76E242F684}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcamera", "libcamera\libcamera.vcxproj", "{ACF98023-FF93-4F23-B79C-16DF44578B97}"
 EndProject
