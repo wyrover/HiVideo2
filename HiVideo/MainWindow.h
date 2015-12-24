@@ -40,12 +40,17 @@ namespace e
 		void OnVideoStop(void);
 		void OnVideoMatting(void);
 		void OnVideoType(void);
+		void OnVideoSave(void);
 
 	protected:
 		CPaintManagerUI m_pm;
 		CVideoDevice* m_pVideoDevice;
-		BOOL m_bVideoMatting;
 		CVideoMatting* m_pVideoMatting;
 		CImageEffect* m_pVideoEffect;
+
+		//capture background
+		enum {WaitCaptureBG, StartCaptureBG, MattingVideo};
+		DWORD m_dwState;
+		DWORD m_dwStartTime;
 	};
 }

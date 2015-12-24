@@ -5,5 +5,6 @@
 #include "DShowUtils.h"
 #include "MemBlock.h"
 #include "Bitmap.h"
+#include "Log.h"
 
 #endif

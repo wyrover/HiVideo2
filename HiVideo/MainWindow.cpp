@@ -31,12 +31,13 @@ namespace e
 		m_pVideoDevice = new CVideoDevice(&hr);
 		ASSERT(m_pVideoDevice);
 
-		m_bVideoMatting = false;
 		m_pVideoMatting = new CVideoMatting();
 		ASSERT(m_pVideoMatting);
 
 		m_pVideoEffect = new CImageEffect();
 		ASSERT(m_pVideoEffect);
+
+		m_dwState = WaitCaptureBG;
 	}
 
 	CMainWindow::~CMainWindow(void)
@@ -182,6 +183,10 @@ namespace e
 
 	void CMainWindow::Notify(TNotifyUI& msg)
 	{
+// 		TCHAR szMsg[256];
+// 		_stprintf_s(szMsg, _T("msg type = %s\n"), msg.sType.GetData());
+// 		OutputDebugString(szMsg);
+
 		if (msg.sType == _T("click"))
 		{
 			if (msg.pSender->GetName() == _T("btn_close") || msg.pSender->GetName() == _T("closebtn2")){
@@ -200,10 +205,15 @@ namespace e
 				OnVideoType();
 			}
 		}
+		else if (msg.sType == _T("valuechanged"))
+		{
+			auto pSlider = static_cast<DuiLib::CSliderUI*>(m_pm.FindControl(_T("diff_threshold")));
+			m_pVideoMatting->SetThreshold(pSlider->GetValue());
+		}
 	}
-	//////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//----------------------------------------Camera--------------------------------------------------
-	//////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	bool CMainWindow::InitVideo(void)
 	{
 		HRESULT hr;
@@ -212,7 +222,6 @@ namespace e
 
 		auto pDeviceName = static_cast<DuiLib::CComboUI*>(m_pm.FindControl(_T("com_device_list")))->GetText();
 		hr = m_pVideoDevice->GetCaptureDeviceFormats(pDeviceName, this);
-
 		return SUCCEEDED(hr);
 	}
 
@@ -236,13 +245,43 @@ namespace e
 
 	void CMainWindow::OnAddSample(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
 	{
-		static auto pControl = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("ctrl_video")));
-		if (m_bVideoMatting)
+		//render ref video
+		static auto pRefVideo = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("ref_video")));
+		pRefVideo->DoRenderSample(pData, nWidth, nHeight, nBitCount);
+
+		if (m_dwState == WaitCaptureBG)
 		{
-			//m_pVideoMatting->OnSampleProc(pData, nSize, nWidth, nHeight, nBitCount);
-			m_pVideoEffect->OnSampleProc(pData, nSize, nWidth, nHeight, nBitCount);
+			m_dwStartTime = 0;
+			return;
 		}
-		pControl->DoRenderSample(pData, nWidth, nHeight, nBitCount);
+		else if (m_dwState == StartCaptureBG)
+		{
+			if (m_dwStartTime == 0)
+			{
+				m_dwStartTime = GetTickCount();
+			}
+
+			if (GetTickCount() - m_dwStartTime < 5 * 1000)
+			{
+				return;
+			}
+			//init & set virtual background
+			m_pVideoMatting->InitializeImage(nWidth, nHeight, nBitCount);
+			m_pVideoMatting->SetVirtualBGImage(pData, nSize, nWidth, nHeight, nBitCount);
+			//set real background
+			m_pVideoMatting->SetRealBGImage(pData, nSize, nWidth, nHeight, nBitCount);
+			auto pBGVideo = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("bk_video")));
+			pBGVideo->DoRenderSample(pData, nWidth, nHeight, nBitCount);
+			m_dwState = MattingVideo;
+		}
+		else if (m_dwState == MattingVideo)
+		{
+			//matting process
+			m_pVideoMatting->OnSampleProc(pData, nSize, nWidth, nHeight, nBitCount);
+			//render mix video
+			static auto pMixVideo = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("mix_video")));
+			pMixVideo->DoRenderSample(pData, nWidth, nHeight, nBitCount);
+		}
 	}
 
 	void CMainWindow::OnVideoStart(void)
@@ -253,6 +292,7 @@ namespace e
 		if (FAILED(hr)) return;
 		hr = m_pVideoDevice->Start();
 		if (FAILED(hr)) return;
+		m_dwStartTime = 0;
 	}
 
 	void CMainWindow::OnVideoStop(void)
@@ -260,19 +300,42 @@ namespace e
 		HRESULT hr = m_pVideoDevice->Stop();
 		if (FAILED(hr)) return;
 
-		auto pControl = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("ctrl_video")));
-		pControl->DoRenderSample(0xFF00FF00);
+		DWORD dwGreenColor = 0xff00ff00;
+		auto pControl = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("ref_video")));
+		pControl->DoRenderSample(dwGreenColor);
+		pControl = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("mix_video")));
+		pControl->DoRenderSample(dwGreenColor);
+		pControl = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("bk_video")));
+		pControl->DoRenderSample(dwGreenColor);
+
+		m_pVideoMatting->Reset();
+		m_dwState = WaitCaptureBG;
 	}
 
 	void CMainWindow::OnVideoMatting(void)
 	{
-		m_bVideoMatting = !m_bVideoMatting;
+		if (m_dwState == WaitCaptureBG)
+			m_dwState = StartCaptureBG;
+		else
+			m_dwState = WaitCaptureBG;
 	}
 
+	//video effect
 	void CMainWindow::OnVideoType(void)
 	{
 		static int nType = 0;
 		m_pVideoEffect->SetType(nType);
 		nType = !nType;
+
+		OnVideoSave();
+	}
+
+	void CMainWindow::OnVideoSave(void)
+	{
+		if (m_dwState != MattingVideo) return;
+
+		TCHAR szFileName[MAX_PATH] = { 0 };
+		_stprintf_s(szFileName, _T("f:\\fg%u.bmp"), GetTickCount());
+		m_pVideoMatting->OnSampleSave(szFileName);
 	}
 }

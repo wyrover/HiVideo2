@@ -53,6 +53,15 @@ namespace e
 		}
 	}
 
+	template<class T> void SafeDeleteArray(T** p)
+	{
+		if (*p)
+		{
+			delete[] *p;
+			*p = NULL;
+		}
+	}
+
 	template<class T> void SafeRelease(T** p)
 	{
 		if (*p)

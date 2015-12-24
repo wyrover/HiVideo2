@@ -14,12 +14,16 @@ namespace e
 	private:
 		bool Open(const TCHAR* pFileName);
 		bool Reserve(int nCapacity);
-		void Write(const TCHAR* pFormat, va_list arglist);
+		void Write(const TCHAR* pPrefix, const TCHAR* pFormat, va_list arglist);
+		void Write(const TCHAR* pszMsg, int nSize);
 		void Close(void);
 	private:
 		HANDLE m_hFile;
+		int m_nBufferSize;
 		TCHAR* m_pBuffer;
 		CRITICAL_SECTION m_csLock;
 	};
+
+	void Log(const TCHAR* pFormat, ...);
 }
 

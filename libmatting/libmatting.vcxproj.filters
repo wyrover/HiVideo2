@@ -30,12 +30,24 @@
     <ClInclude Include="VideoMatting.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ColorSpace.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageFilter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="VideoMatting.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorSpace.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageFilter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

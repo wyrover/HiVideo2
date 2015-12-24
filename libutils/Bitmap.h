@@ -24,17 +24,22 @@ namespace e
 		BYTE* GetBits(void) const;
 		BYTE* GetBits(int x, int y) const;
 		//create bitmap
-		HRESULT Create(int nWidth
+		BOOL Create(int nWidth
 			, int nHeight
 			, int nBitCount
 			, LPVOID lpBits = NULL
 			, bool bSetZero = false);
+		//store bitmap
+		BOOL Store(void* pData
+			, int nWidth
+			, int nHeight
+			, int nBitCount);
 		//destroy bitmap
-		HRESULT Destroy(void);
+		void Destroy(void);
 		//load from file
-		HRESULT Load(LPCTSTR lpFileName);
+		BOOL Load(LPCTSTR lpFileName);
 		//write to file
-		HRESULT Save(LPCTSTR lpFileName);
+		BOOL Save(LPCTSTR lpFileName);
 
 		static BOOL Load(LPCTSTR lpFileName
 			, LPDWORD pWidth

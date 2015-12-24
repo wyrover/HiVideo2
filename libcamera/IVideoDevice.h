@@ -3,8 +3,8 @@
 #include <Unknwn.h>
 namespace e
 {
-	const int kOutVideoWidth = 640;
-	const int kOutVideoHeight = 480;
+	const int kOutVideoWidth = 480;
+	const int kOutVideoHeight = 360;
 	
 	typedef enum{ 
 		UNKNOWN,  RGB24, RGB32,IMC1, IMC2, IMC3, IMC4, 

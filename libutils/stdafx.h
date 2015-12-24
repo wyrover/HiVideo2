@@ -19,3 +19,5 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <memory.h>
+
+#include "libutildefs.h"

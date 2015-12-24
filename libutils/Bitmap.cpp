@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Bitmap.h"
+#include "Log.h"
 
 namespace e
 {
@@ -92,8 +93,8 @@ namespace e
 	CBitmap::CBitmap(LPCTSTR lpFileName)
 	{
 		Reset();
-		HRESULT hr = Load(lpFileName);
-		assert(hr == S_OK);
+		BOOL bRet = Load(lpFileName);
+		assert(bRet);
 	}
 
 	CBitmap::CBitmap(int nWidth, int nHeight, int nBitCount, LPVOID pBits /* = NULL */, bool bAlloc /* = true */)
@@ -102,8 +103,8 @@ namespace e
 
 		if (bAlloc)
 		{
-			HRESULT hr = Create(nWidth, nHeight, nBitCount, pBits);
-			assert(hr == S_OK);
+			BOOL bRet = Create(nWidth, nHeight, nBitCount, pBits);
+			assert(bRet);
 		}
 		else if (pBits)
 		{
@@ -113,6 +114,16 @@ namespace e
 			m_nBitCount = nBitCount;
 			m_nLineSize = WidthBytes(nWidth*nBitCount);
 		}
+	}
+
+	void CBitmap::Reset(void)
+	{
+		m_pBits = NULL;
+		m_nSize = 0;
+		m_nWidth = 0;
+		m_nHeight = 0;
+		m_nBitCount = 0;
+		m_nLineSize = 0;
 	}
 
 	CBitmap::~CBitmap(void)
@@ -163,9 +174,9 @@ namespace e
 		return m_pBits + (y * m_nLineSize) + x * (m_nBitCount >> 3);
 	}
 
-	HRESULT CBitmap::Load(LPCTSTR lpFileName)
+	BOOL CBitmap::Load(LPCTSTR lpFileName)
 	{
-		CheckPointer(lpFileName, E_POINTER);
+		CheckPointer(lpFileName, FALSE);
 		if (!CBitmap::Load(lpFileName
 			, (LPDWORD)&m_nWidth
 			, (LPDWORD)&m_nHeight
@@ -174,20 +185,20 @@ namespace e
 			, (LPDWORD)&m_nSize))
 		{
 			Destroy();
-			return E_FAIL;
+			return FALSE;
 		}
-		return S_OK;
+		return TRUE;
 	}
 
-	HRESULT CBitmap::Create(int nWidth, int nHeight, int nBitCount, LPVOID lpBits /* = NULL */, bool bSetZero /* = false */)
+	BOOL CBitmap::Create(int nWidth, int nHeight, int nBitCount, LPVOID lpBits /* = NULL */, bool bSetZero /* = false */)
 	{
 		assert(nWidth >= 0 && nHeight >= 0 && nBitCount > 0);
-		if (nWidth < 0 || nHeight < 0||nBitCount<=0) return E_INVALIDARG;
+		if (nWidth < 0 || nHeight < 0||nBitCount<=0) return FALSE;
 		int nNewSize = WidthBytes(nWidth * nBitCount) * nHeight;
 		if (nNewSize != m_nSize)
 		{
 			m_pBits = (BYTE*)realloc(m_pBits, nNewSize);
-			if (m_pBits == NULL) return E_OUTOFMEMORY;
+			if (m_pBits == NULL) return FALSE;
 		}
 
 		if (lpBits != NULL)
@@ -203,12 +214,17 @@ namespace e
 		m_nHeight = nHeight;
 		m_nBitCount = nBitCount;
 		m_nLineSize = nNewSize;
-		return S_OK;
+		return TRUE;
 	}
 
-	HRESULT CBitmap::Save(LPCTSTR lpFileName)
+	BOOL CBitmap::Store(void* pData, int nWidth, int nHeight, int nBitCount)
 	{
-		return CBitmap::Save(lpFileName, m_nWidth, m_nHeight, m_nBitCount, m_pBits) ? S_OK : E_FAIL;
+		return Create(nWidth, nHeight, nBitCount, pData);
+	}
+
+	BOOL CBitmap::Save(LPCTSTR lpFileName)
+	{
+		return CBitmap::Save(lpFileName, m_nWidth, m_nHeight, m_nBitCount, m_pBits);
 	}
 
 	const CBitmap& CBitmap::operator=(const CBitmap& other)
@@ -233,9 +249,13 @@ namespace e
 				, 0
 				, NULL
 				, OPEN_ALWAYS
-				, 0
+				, FILE_ATTRIBUTE_NORMAL
 				, NULL);
-			if (hFile == NULL) break;
+			if (hFile == INVALID_HANDLE_VALUE)
+			{
+				Log(_T("open file failed : %u, %s"), GetLastError(), lpFileName);
+				break;
+			}
 
 			DWORD dwFileSize = GetFileSize(hFile, NULL);
 			if (dwFileSize <= 54) break;
@@ -296,13 +316,17 @@ namespace e
 		do
 		{
 			hFile = CreateFile(lpFileName
-				, 0
 				, GENERIC_WRITE
+				, 0
 				, NULL
 				, CREATE_ALWAYS
-				, 0
+				, FILE_ATTRIBUTE_NORMAL
 				, NULL);
-			if (hFile == NULL) break;
+			if (hFile == INVALID_HANDLE_VALUE)
+			{
+				Log(_T("open file failed : %u, %s"), GetLastError(), lpFileName);
+				break;
+			}
 
 			DWORD dwLineBytes = WidthBytes(dwWidth * dwBitCount);
 			DWORD dwImageSize = dwLineBytes * dwHeight;
@@ -338,7 +362,11 @@ namespace e
 			header.biClrUsed = 0;
 			header.biClrImportant = 0;
 
-			if (!Write(&header, sizeof(header), hFile)) break;
+			if (!Write(&header, sizeof(header), hFile))
+			{
+				Log(_T("write file failed : %u, %s"), GetLastError(), lpFileName);
+				break;
+			}
 
 			if (dwBitCount == 8)
 			{
@@ -355,6 +383,7 @@ namespace e
 
 				if (!Write(pRGBQuad, sizeof(RGBQUAD) * (1 << dwBitCount), hFile))
 				{
+					Log(_T("write file failed : %u, %s"), GetLastError(), lpFileName);
 					delete[] pRGBQuad;break;
 				}
 
@@ -364,7 +393,11 @@ namespace e
 			BYTE* p = (BYTE*)lpBits + (dwHeight - 1) * dwLineBytes;
 			for (DWORD i = 0; i < dwHeight; i++)
 			{
-				if (!Write(p, dwLineBytes, hFile)) goto _error;
+				if (!Write(p, dwLineBytes, hFile))
+				{
+					Log(_T("write file failed : %u, %s"), GetLastError(), lpFileName);
+					goto _error;
+				}
 				p -= dwLineBytes;
 			}
 			bResult = TRUE;
@@ -374,23 +407,8 @@ _error:
 		return bResult;
 	}
 
-	HRESULT CBitmap::Destroy(void)
+	void CBitmap::Destroy(void)
 	{
-		if (m_pBits)
-		{
-			free(m_pBits);
-			m_pBits = NULL;
-		}
-		return NOERROR;
-	}
-
-	void CBitmap::Reset(void)
-	{
-		m_pBits = NULL;
-		m_nSize = 0;
-		m_nWidth = 0;
-		m_nHeight = 0;
-		m_nBitCount = 0;
-		m_nLineSize = 0;
+		SafeFree(&m_pBits);
 	}
 }
