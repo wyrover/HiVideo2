@@ -187,6 +187,8 @@ namespace e
 			Destroy();
 			return FALSE;
 		}
+
+		m_nLineSize = WidthBytes(m_nWidth*m_nBitCount);
 		return TRUE;
 	}
 
@@ -199,6 +201,7 @@ namespace e
 		{
 			m_pBits = (BYTE*)realloc(m_pBits, nNewSize);
 			if (m_pBits == NULL) return FALSE;
+			m_nSize = nNewSize;
 		}
 
 		if (lpBits != NULL)
@@ -213,7 +216,7 @@ namespace e
 		m_nWidth = nWidth;
 		m_nHeight = nHeight;
 		m_nBitCount = nBitCount;
-		m_nLineSize = nNewSize;
+		m_nLineSize = WidthBytes(nWidth*nBitCount);
 		return TRUE;
 	}
 
@@ -293,6 +296,7 @@ namespace e
 			*pWidth = (int)header.biWidth;
 			*pHeight = (int)header.biHeight;
 			*pBitCount = (int)header.biBitCount;
+			*pSize = nNewSize;
 
 			BYTE* p0 = (BYTE*)*ppBits;
 			BYTE* p1 = (BYTE*)*ppBits + nNewSize;

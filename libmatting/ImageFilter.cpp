@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "ImageFilter.h"
+#include "ColorSpace.h"
 
 namespace e
 {
@@ -25,7 +26,7 @@ namespace e
 	CImageFilter::CImageFilter(void)
 	{
 		m_nRadius = 1;
-		m_fSigma = 2.0f;
+		m_fSigma = 1.0f;
 		m_pKernals = 0;
 		m_pTemp = NULL;
 		CalcKernals(m_fSigma);
@@ -56,7 +57,7 @@ namespace e
 		normalize(m_pKernals, len);
 	}
 
-	void SetPixel(int val, uint8* p, int x, int y, int step, int bpp)
+	inline void SetPixel(int val, uint8* p, int x, int y, int step, int bpp)
 	{
 		p[y * step + x * bpp] = val;
 	}
@@ -150,6 +151,61 @@ namespace e
 			{
 				CalcBlock(pSrc, nBitCount, nLineBytes, nBlockSize);
 				pSrc += (nBlockSize*(nBitCount >> 3));
+			}
+		}
+	}
+
+	void CImageFilter::ConvertGray(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
+	{
+		int nLineBytes = WidthBytes(nBitCount * nWidth);
+		for (int y = 0; y < nHeight; y++)
+		{
+			uint8* p = (uint8*)pData + y * nLineBytes;
+			for (int x = 0; x < nWidth; x++)
+			{
+				int R = p[0], G = p[1], B = p[2];
+				p[3] = p[2] = p[1] = p[0] = (R * 76 + G * 150 + B * 30 + 128) >> 8;
+				//p[3] = p[2] = p[1] = p[0] = (R + B + G) / 3;
+				p += nBitCount >> 3;
+			}
+		}
+	}
+
+	void CImageFilter::ConvertGray(void* pGray, void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
+	{
+		int nLineBytes0 = WidthBytes(8 * nWidth);
+		int nLineBytes1 = WidthBytes(nBitCount * nWidth);
+		float lval, aval, bval;
+		for (int y = 0; y < nHeight; y++)
+		{
+			uint8* pDst = (uint8*)pGray + y * nLineBytes0;
+			uint8* pSrc = (uint8*)pData + y * nLineBytes1;
+			for (int x = 0; x < nWidth; x++)
+			{
+				int R = pSrc[0], G = pSrc[1], B = pSrc[2];
+				pDst[x] = (R * 76 + G * 150 + B * 30 + 128) >> 8;
+				//RGB2LAB(pSrc[0], pSrc[1], pSrc[2], &lval, &aval, &bval);
+				//pDst[x] = max(0, min(lval * 255 / 100, 255));
+				pSrc += nBitCount >> 3;
+			}
+		}
+	}
+
+	void CImageFilter::ConvertGray(CBitmap* pImage)
+	{
+		assert(pImage->BitCount() == 32);
+		int nWidth = pImage->Width();
+		int nHeight = pImage->Height();
+		int nPixelSize = pImage->BitCount() / 8;
+
+		for (int y = 0; y < nHeight; y++)
+		{
+			uint8* pSrc = pImage->GetBits(0, y);
+			for (int x = 0; x < nWidth; x++)
+			{
+				//gray data replace alpha channel
+				pSrc[3] = (pSrc[2] * 76 + pSrc[1] * 150 + pSrc[0] * 30 + 128) >> 8;
+				pSrc += nPixelSize;
 			}
 		}
 	}

@@ -41,6 +41,7 @@ namespace e
 		void OnVideoMatting(void);
 		void OnVideoType(void);
 		void OnVideoSave(void);
+		void OnVideoDistance(void);
 
 	protected:
 		CPaintManagerUI m_pm;

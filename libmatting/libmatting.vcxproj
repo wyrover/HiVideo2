@@ -86,6 +86,7 @@
   <ItemGroup>
     <ClInclude Include="ColorSpace.h" />
     <ClInclude Include="ImageFilter.h" />
+    <ClInclude Include="ImageTrimap.h" />
     <ClInclude Include="libmatting.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -94,6 +95,7 @@
   <ItemGroup>
     <ClCompile Include="ColorSpace.cpp" />
     <ClCompile Include="ImageFilter.cpp" />
+    <ClCompile Include="ImageTrimap.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

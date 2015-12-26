@@ -203,12 +203,14 @@ namespace e
 				OnVideoMatting();
 			}else if (msg.pSender->GetName() == _T("btn_video_type")){
 				OnVideoType();
+			}else if (msg.pSender->GetName() == _T("btn_video_dist")){
+				OnVideoDistance();
 			}
 		}
 		else if (msg.sType == _T("valuechanged"))
 		{
 			auto pSlider = static_cast<DuiLib::CSliderUI*>(m_pm.FindControl(_T("diff_threshold")));
-			m_pVideoMatting->SetThreshold(pSlider->GetValue());
+			m_pVideoMatting->SetMattingThreshold(pSlider->GetValue());
 		}
 	}
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -335,7 +337,13 @@ namespace e
 		if (m_dwState != MattingVideo) return;
 
 		TCHAR szFileName[MAX_PATH] = { 0 };
-		_stprintf_s(szFileName, _T("f:\\fg%u.bmp"), GetTickCount());
+		DWORD dwTime = GetTickCount();
+		_stprintf_s(szFileName, _T("f:\\diff_%u.txt"), dwTime);
 		m_pVideoMatting->OnSampleSave(szFileName);
+	}
+
+	void CMainWindow::OnVideoDistance(void)
+	{
+
 	}
 }
