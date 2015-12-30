@@ -19,7 +19,7 @@ namespace e
 		Clean();
 	}
 
-	bool CImageBlur::Init(int nSize)
+	bool CImageBlur::Initialize(int nSize)
 	{
 		return m_pBlockTemp->Create(nSize);
 	}
@@ -37,21 +37,15 @@ namespace e
 		OutputDebugString(szMsg);
 	}
 
-	void CImageBlur::SetConfig(IEffectConfig* pConfig)
-	{
-
-	}
-
 	void CImageBlur::OnSampleProc(void* pData
 		, int nSize
 		, int nWidth
 		, int nHeight
 		, int nBitCount)
 	{
-		Init(nSize);
+		Initialize(nSize);
 
 		void* pTemp = m_pBlockTemp->GetData();
-
 		if (m_nType == 0)
 		{
 			FastBlur(pTemp, pData, nWidth, nHeight, nBitCount, m_fSigma, Normal);

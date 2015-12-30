@@ -183,9 +183,9 @@ namespace e
 
 	void CMainWindow::Notify(TNotifyUI& msg)
 	{
-// 		TCHAR szMsg[256];
-// 		_stprintf_s(szMsg, _T("msg type = %s\n"), msg.sType.GetData());
-// 		OutputDebugString(szMsg);
+		TCHAR szMsg[256];
+		_stprintf_s(szMsg, _T("msg type = %s\n"), msg.sType.GetData());
+		OutputDebugString(szMsg);
 
 		if (msg.sType == _T("click"))
 		{
@@ -205,12 +205,35 @@ namespace e
 				OnVideoType();
 			}else if (msg.pSender->GetName() == _T("btn_video_dist")){
 				OnVideoDistance();
+			}else if (msg.pSender->GetName() == _T("btn_graph_noise")){
+				OnGraphNoise();
+			}
+		}
+		else if (msg.sType == _T("itemselect"))
+		{
+			if (msg.pSender->GetName() == _T("com_device_list"))
+			{
+				SwitchDevice();
+			}
+			else if (msg.pSender->GetName() == _T("com_format_list"))
+			{
+
 			}
 		}
 		else if (msg.sType == _T("valuechanged"))
 		{
-			auto pSlider = static_cast<DuiLib::CSliderUI*>(m_pm.FindControl(_T("diff_threshold")));
-			m_pVideoMatting->SetMattingThreshold(pSlider->GetValue());
+			int nIndex = 0;
+			if (msg.pSender->GetName() == _T("slider_threshold0"))
+			{
+				nIndex = 0;
+			}
+			else
+			{
+				nIndex = 1;
+			}
+
+			auto pSlider = static_cast<DuiLib::CSliderUI*>(msg.pSender);
+			m_pVideoMatting->SetMattingThreshold(nIndex, pSlider->GetValue());
 		}
 	}
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -225,6 +248,28 @@ namespace e
 		auto pDeviceName = static_cast<DuiLib::CComboUI*>(m_pm.FindControl(_T("com_device_list")))->GetText();
 		hr = m_pVideoDevice->GetCaptureDeviceFormats(pDeviceName, this);
 		return SUCCEEDED(hr);
+	}
+
+	bool CMainWindow::SwitchDevice(void)
+	{
+		//devices
+		{
+			auto pControl = static_cast<DuiLib::CComboUI*>(m_pm.FindControl(_T("com_format_list")));
+			pControl->RemoveAll();
+		}
+		//formats
+		{
+			auto pControl = static_cast<DuiLib::CComboUI*>(m_pm.FindControl(_T("com_device_list")));
+			HRESULT hr = m_pVideoDevice->GetCaptureDeviceFormats(pControl->GetText(), this);
+			return SUCCEEDED(hr);
+		}
+	}
+
+	bool CMainWindow::SwitchFormat(void)
+	{
+		int nWidth = 640;
+		int nHeight = 480;
+		HRESULT hr = m_pVideoDevice->SetCurrentOutputFormat();
 	}
 
 	void CMainWindow::OnAddDevice(const TCHAR* pszDeviceName)
@@ -345,5 +390,12 @@ namespace e
 	void CMainWindow::OnVideoDistance(void)
 	{
 
+	}
+
+	void CMainWindow::OnGraphNoise(void)
+	{
+		static bool bEnable = true;
+		m_pVideoMatting->SetGraphNoiseEnable(bEnable);
+		bEnable = !bEnable;
 	}
 }

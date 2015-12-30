@@ -21,13 +21,15 @@
 				-->
 				<Combo name="com_device_list" float="true" pos="1060,20,1260,45" bkcolor="#FFFFFFFF" />
 				<Combo name="com_format_list" float="true" pos="1060,55,1260,80" bkcolor="#FFFFFFFF" />
-				<Slider name="diff_threshold" float="true" pos="1060,90,1260,115" min="0" max="256" value="10" backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF"/>
+				<Slider name="slider_threshold0" float="true" pos="1060,90,1260,115" min="0" max="80" value="15" backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF"/>
+				<Slider name="slider_threshold1" float="true" pos="1060,125,1260,150" min="0" max="80" value="35" backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF"/>
 				<VerticalLayout name="right_toolbar" width="60" bkcolor="#FFFFFF00" bordercolor="#FF1B4876" bordersize="1">
 					<Button name="btn_video_start" float="true" pos="7,4,55,52" tooltip="启动摄像头" normalimage="video_start.png" hotimage="video_start.png" pushedimage="video_start.pgn"/>
 					<Button name="btn_video_stop"  float="true" pos="7,62,55,110" tooltip="关闭摄像头" normalimage="video_stop.png" hotimage="video_stop.png" pushedimage="video_stop.pgn"/>
-					<Button name="btn_video_matting" float="true" pos="7,120,54,168" tooltip="matting" normalimage="video_matting.png" hotimage="video_matting.png" pushedimage="video_matting.pgn"/>
-					<Button name="btn_video_type" float="true" pos="7,178,54,226" tooltip="type" normalimage="video_save.png" hotimage="video_save.png" pushedimage="video_save.pgn"/>
-					<Button name="btn_video_dist" float="true" pos="7,236,54,284" tooltip="type" normalimage="video_distance.png" hotimage="video_distance.png" pushedimage="video_distance.pgn"/>
+					<Button name="btn_video_matting" float="true" pos="7,120,54,168" tooltip="抠图" normalimage="video_matting.png" hotimage="video_matting.png" pushedimage="video_matting.pgn"/>
+					<Button name="btn_video_type" float="true" pos="7,178,54,226" tooltip="模糊类型" normalimage="video_save.png" hotimage="video_save.png" pushedimage="video_save.pgn"/>
+					<Button name="btn_video_dist" float="true" pos="7,236,54,284" tooltip="颜色距离" normalimage="video_distance.png" hotimage="video_distance.png" pushedimage="video_distance.pgn"/>
+					<Button name="btn_graph_noise" float="true" pos="7,294,54,342" tooltip="噪音" normalimage="graph_noise.png" hotimage="graph_noise.png" pushedimage="graph_noise.pgn"/>
 				</VerticalLayout>
 			</HorizontalLayout>
 		</VerticalLayout>

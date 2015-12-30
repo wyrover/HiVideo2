@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "ImageFilter.h"
 #include "ColorSpace.h"
+#include "ImageBlur.h"
+#include "Region.h"
 
 namespace e
 {
@@ -25,17 +27,28 @@ namespace e
 
 	CImageFilter::CImageFilter(void)
 	{
-		m_nRadius = 1;
-		m_fSigma = 1.0f;
+		m_nRadius = 2;
+		m_fSigma = 1.5f;
 		m_pKernals = 0;
 		m_pTemp = NULL;
 		CalcKernals(m_fSigma);
+
+		m_pBlur = new CImageBlur();
+		assert(m_pBlur);
+
+		m_pGraphTemp = new CBitmap();
+		assert(m_pGraphTemp);
+
+		m_pRegion = NULL;
 	}
 
 	CImageFilter::~CImageFilter(void)
 	{
 		SafeFree(&m_pTemp);
 		SafeFree(&m_pKernals);
+		SafeDelete(&m_pBlur);
+		SafeDelete(&m_pGraphTemp);
+		SafeDelete(&m_pRegion);
 	}
 
 	bool CImageFilter::Initialize(int nWidth, int nHeight, int nBitCount)
@@ -101,6 +114,7 @@ namespace e
 
 	void CImageFilter::Smooth(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
 	{
+#if 0
 		if (m_pTemp == NULL)
 		{
 			Initialize(nHeight, nWidth, nBitCount);
@@ -108,9 +122,12 @@ namespace e
 
 		Convolve(pData, m_pTemp, nWidth, nHeight, nBitCount);
 		Convolve(m_pTemp, pData, nHeight, nWidth, nBitCount);
+#else
+		m_pBlur->OnSampleProc(pData, nSize, nWidth, nHeight, nBitCount);
+#endif
 	}
 
-	void CImageFilter::CalcBlock(void* pData, int nBitCount, int nLineBytes, int nBlockSize)
+	void CImageFilter::GetBlock(void* pData, int nBitCount, int nLineBytes, int nBlockSize)
 	{
 		int nSum[3] = { 0 };
 		for (int y = 0; y < nBlockSize; y++)
@@ -149,7 +166,7 @@ namespace e
 			uint8* pSrc = (uint8*)pData + y * nLineBytes;
 			for (int x = 0; x < nWidth; x += nBlockSize)
 			{
-				CalcBlock(pSrc, nBitCount, nLineBytes, nBlockSize);
+				GetBlock(pSrc, nBitCount, nLineBytes, nBlockSize);
 				pSrc += (nBlockSize*(nBitCount >> 3));
 			}
 		}
@@ -165,7 +182,6 @@ namespace e
 			{
 				int R = p[0], G = p[1], B = p[2];
 				p[3] = p[2] = p[1] = p[0] = (R * 76 + G * 150 + B * 30 + 128) >> 8;
-				//p[3] = p[2] = p[1] = p[0] = (R + B + G) / 3;
 				p += nBitCount >> 3;
 			}
 		}
@@ -208,5 +224,189 @@ namespace e
 				pSrc += nPixelSize;
 			}
 		}
+	}
+
+	void CImageFilter::Block2Graph(CBitmap* pGraph, CBitmap* pBlock, int nBlockSize)
+	{
+		int nWidth = pBlock->Width();
+		int nHeight = pBlock->Height();
+		int nBitCount = pBlock->BitCount();
+
+		for (int y = 0; y < nHeight; y+=nBlockSize)
+		{
+			uint8* pSrc = pBlock->GetBits(0, y);
+			uint8* pDst = pGraph->GetBits(0, y / nBlockSize);
+			for (int x = 0; x < nWidth; x+=nBlockSize)
+			{
+				*pDst++ = pSrc[0] > 0 ? 255 : 0;
+				pSrc += nBlockSize*(nBitCount >> 3);
+			}
+		}
+	}
+
+	void CImageFilter::SetBlock(int nValue, void* pData, int nBitCount, int nLineBytes, int nBlockSize)
+	{
+		for (int y = 0; y < nBlockSize; y++)
+		{
+			uint8* pSrc = (uint8*)pData + y * nLineBytes;
+			for (int x = 0; x < nBlockSize; x++)
+			{
+				pSrc[0] = pSrc[1] = pSrc[2] = nValue;
+				pSrc += nBitCount >> 3;
+			}
+		}
+	}
+
+	void CImageFilter::Graph2Block(CBitmap* pBlock, CBitmap* pGraph, int nBlockSize)
+	{
+		int nWidth = pBlock->Width();
+		int nHeight = pBlock->Height();
+		int nBitCount = pBlock->BitCount();
+		int nLineBytes = WidthBytes(nWidth*nBitCount);
+
+		for (int y = 0; y < nHeight; y += nBlockSize)
+		{
+			uint8* pSrc = pBlock->GetBits(0, y);
+			uint8* pGra = pGraph->GetBits(0, y / nBlockSize);
+			for (int x = 0; x < nWidth; x += nBlockSize)
+			{
+				SetBlock(*pGra++, pSrc, nBitCount, nLineBytes, nBlockSize);
+				pSrc += nBlockSize*(nBitCount >> 3);
+			}
+		}
+	}
+
+	//腐蚀黑点
+	void CImageFilter::Erosion(CBitmap* pGraph, int nDirection)
+	{
+		int nWidth = pGraph->Width();
+		int nHeight = pGraph->Height();
+		int nBitCount = pGraph->BitCount();
+		*m_pGraphTemp = *pGraph;
+	
+		//水平方向
+		if (nDirection & 0x01)
+		{
+			for (int y = 0; y < nHeight; y++)
+			{
+				uint8* pSrc = m_pGraphTemp->GetBits(0, y);
+				uint8* pDst = pGraph->GetBits(0, y);
+				for (int x = 0; x < nWidth; x++)
+				{
+					uint8* p0 = x > 0 ? pSrc - 1 : pSrc;
+					uint8* p2 = x < nWidth - 1 ? pSrc + 1 : pSrc;
+					//相邻有一个是白点
+					if (*p0 || *p2)
+						*pDst = 255;
+					else
+						*pDst = 0;
+
+					pSrc++;
+					pDst++;
+				}
+			}
+		}
+
+		//垂直方向
+		if (nDirection & 0x02)
+		{
+			int nLineBytes = WidthBytes(nWidth*nBitCount);
+			for (int x = 0; x < nWidth; x++)
+			{
+				uint8* pSrc = m_pGraphTemp->GetBits(x, 0);
+				uint8* pDst = pGraph->GetBits(x, 0);
+				for (int y = 0; y < nHeight; y++)
+				{
+					uint8* p0 = y > 0 ? pSrc - nLineBytes : pSrc;
+					uint8* p2 = y < nHeight - 1 ? pSrc + nLineBytes : pSrc;
+
+					if (*p0 || *p2)
+						*pDst = 255;
+					else
+						*pDst = 0;
+
+					pSrc += nLineBytes;
+					pDst += nLineBytes;
+				}
+			}
+		}
+	}
+
+	//膨胀黑点
+	void CImageFilter::Dilation(CBitmap* pGraph, int nDirection)
+	{
+		int nWidth = pGraph->Width();
+		int nHeight = pGraph->Height();
+		int nBitCount = pGraph->BitCount();
+
+		*m_pGraphTemp = *pGraph;
+
+		//水平方向
+		if (nDirection & 0x01)
+		{
+			for (int y = 0; y < nHeight; y++)
+			{
+				uint8* pSrc = m_pGraphTemp->GetBits(0, y);
+				uint8* pDst = pGraph->GetBits(0, y);
+				for (int x = 0; x < nWidth; x++)
+				{
+					uint8* p0 = x > 0 ? pSrc - 1 : pSrc;
+					uint8* p2 = x < nWidth - 1 ? pSrc + 1 : pSrc;
+
+					if (!*p0 || !*p2)
+						*pDst = 0;
+					else
+						*pDst = 255;
+					
+					pSrc++;
+					pDst++;
+				}
+			}
+		}
+
+		//水平方向
+		if (nDirection & 0x02)
+		{
+			int nLineBytes = WidthBytes(nWidth*nBitCount);
+			for (int x = 0; x < nWidth; x++)
+			{
+				uint8* pSrc = m_pGraphTemp->GetBits(x, 0);
+				uint8* pDst = pGraph->GetBits(x, 0);
+				for (int y = 0; y < nHeight; y++)
+				{
+					uint8* p0 = y > 0 ? pSrc - nLineBytes : pSrc;
+					uint8* p2 = y < nHeight - 1 ? pSrc + nLineBytes : pSrc;
+
+					if (!*p0 || !*p2)
+						*pDst = 0;
+					else
+						*pDst = 255;
+
+					pSrc += nLineBytes;
+					pDst += nLineBytes;
+				}
+			}
+		}
+	}
+
+	void CImageFilter::RemoveBlock(CBitmap* pGraph, int nThreshold)
+	{
+		if (m_pRegion == NULL)
+		{
+			m_pRegion = new CRegion(pGraph->Width(), pGraph->Height());
+			assert(m_pRegion);
+		}
+
+		m_pRegion->RemoveBlock(pGraph, nThreshold, true);
+	}
+
+	void CImageFilter::RemoveNoise(CBitmap* pGraph)
+	{
+		pGraph->Save(_T("f:\\graph0.bmp"));
+		Erosion(pGraph, 0x03);
+		Dilation(pGraph, 0x03);	
+ 		pGraph->Save(_T("f:\\graph1.bmp"));
+		RemoveBlock(pGraph, 25);
+		pGraph->Save(_T("f:\\graph2.bmp"));
 	}
 }

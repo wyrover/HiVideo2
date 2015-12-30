@@ -83,11 +83,11 @@ namespace e
 	CBitmap::CBitmap(const CBitmap& other)
 	{
 		Reset();
-		HRESULT hr = Create(other.m_nWidth
+		BOOL bRet = Create(other.m_nWidth
 			, other.m_nHeight
 			, other.m_nBitCount
 			, other.m_pBits);
-		assert(hr == S_OK);
+		assert(bRet);
 	}
 
 	CBitmap::CBitmap(LPCTSTR lpFileName)
@@ -210,7 +210,7 @@ namespace e
 		}
 		else if (bSetZero)
 		{
-			memcpy(m_pBits, 0, nNewSize);
+			memset(m_pBits, 0, nNewSize);
 		}
 
 		m_nWidth = nWidth;
@@ -223,6 +223,13 @@ namespace e
 	BOOL CBitmap::Store(void* pData, int nWidth, int nHeight, int nBitCount)
 	{
 		return Create(nWidth, nHeight, nBitCount, pData);
+	}
+
+	BOOL CBitmap::Store(CBitmap* pSrc)
+	{
+		assert(pSrc);
+		if (pSrc == NULL) return false;
+		return Create(pSrc->Width(), pSrc->Height(), pSrc->BitCount(), pSrc->GetBits());
 	}
 
 	BOOL CBitmap::Save(LPCTSTR lpFileName)

@@ -36,12 +36,15 @@ namespace e
 		LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 		bool InitVideo(void);
+		bool SwitchDevice(void);
+		bool SwitchFormat(void);
 		void OnVideoStart(void);
 		void OnVideoStop(void);
 		void OnVideoMatting(void);
 		void OnVideoType(void);
 		void OnVideoSave(void);
 		void OnVideoDistance(void);
+		void OnGraphNoise(void);
 
 	protected:
 		CPaintManagerUI m_pm;
