@@ -218,8 +218,10 @@ namespace e
 
 	void CTrimap::RemoveNoise(void)
 	{
-		int nMinSize = 1, nMaxSize = 50;
-		m_pRegion->RemoveBlock(m_pGraph, nMinSize, nMaxSize, true);
+		Erosion(m_pGraph, 0x03);
+		m_pRegion->RemoveBlock(m_pGraph, 1, 10, true);
+		Dilation(m_pGraph, 0x03);
+		m_pRegion->RemoveBlock(m_pGraph, 30, 50, true);
 	}
 
 	void CTrimap::EdgeDetect(void)
