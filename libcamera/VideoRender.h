@@ -18,6 +18,7 @@ namespace e
 	protected:
 		HRESULT GetVideoType(REFCLSID subtype, VideoType& eType);
 		HRESULT CreateRGBABuffer(int nWidth, int nHeight, int nBitCount);
+		HRESULT ReverseBitmap(BYTE* pData, int nWidth, int nHeight, int nBitCount);
 	protected:
 		CMediaType m_mt;
 		CCritSec m_cStateLock;

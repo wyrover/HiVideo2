@@ -17,6 +17,7 @@ namespace e
 		HRESULT GetCurrentDeviceFormats(IVideoFormat* pCallback);
 		HRESULT GetCurrentOutputDevice(LPTSTR lpDeviceName);
 		HRESULT GetCurrentOutputFormat(LPTSTR lpDeviceFormat);
+		HRESULT SetCurrentOutputFormat(LPCTSTR lpFormatName);
 		HRESULT SetCurrentOutputFormat(int nWidth, int nHeight, VideoType eType = YUY2);
 		//device operation
 		HRESULT Create(LPCTSTR lpDeviceName, IVideoSample* pCallback);
@@ -30,6 +31,7 @@ namespace e
 		HRESULT CreateRender(IVideoSample* pCallback, IBaseFilter** ppRender);
 		HRESULT SetDefaultConfig(void);
 		HRESULT GetSubtype(VideoType eType, GUID& subtype);
+		HRESULT GetVideoType(LPCTSTR lpType, VideoType& eType);
 		HRESULT GetSubtypeName(REFGUID subtype, LPTSTR lpTypeName);
 		HRESULT GetVideoTypeName(VideoType eType, LPTSTR lpTypeName);
 		HRESULT SetCaptureConfig(IBaseFilter* pCapture, int nWidth, int nHeight);

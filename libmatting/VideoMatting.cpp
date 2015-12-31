@@ -74,12 +74,17 @@ namespace e
 			return false;
 		if (!GetBitmap(current_graph)->Create(nWidth / m_nBlockSize, nHeight / m_nBlockSize, 8, NULL, true))
 			return false;
+		if (!GetBitmap(current_edge)->Create(nWidth / m_nBlockSize, nHeight / m_nBlockSize, 8, NULL, true))
+			return false;
 		m_nState &= STATE_MATTING;
 		return true;
 	}
 
 	void CVideoMatting::SetRealBGImage(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
 	{
+#ifndef _DEBUG 
+		CBitmap::Save(_T("f:\\bk.bmp"), nWidth, nHeight, nBitCount, pData);
+#endif
 		StoreImage(real_bg_image, pData, nSize, nWidth, nHeight, nBitCount);
 		PreprocessBackground();
 		m_nState &= STATE_SET_RBG;
@@ -248,6 +253,11 @@ namespace e
 			m_pFilter->Block2Graph(pGraph, pTG, m_nBlockSize);
 			m_pFilter->RemoveNoise(pGraph);
 			m_pFilter->Graph2Block(pTG, pGraph, m_nBlockSize);
+
+			CBitmap* pEdge = GetBitmap(current_edge);
+			memset(pEdge->GetBits(), 0, pEdge->Size());
+			m_pFilter->CalcEdge(pGraph, pEdge);
+			pEdge->Save(_T("f:\\edge.bmp"));
 		}
 		//¿ÙÍ¼´¦Àí
 		CalcMatting(pData, pTG->GetBits(), nWidth, nHeight, nBitCount);
@@ -259,7 +269,7 @@ namespace e
 		CBitmap* pBG = GetBitmap(real_bg_image);
 		CBitmap* pFG = GetBitmap(current_image);
 		//compare images
-		m_pDumper->Difference(pFileName, pBG, pFG);
+		//m_pDumper->Difference(pFileName, pBG, pFG);
 	}
 
 	void CVideoMatting::Reset(void)

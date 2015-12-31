@@ -9,6 +9,21 @@ namespace e
 
 	const int kOutVideoBitCount = 32;
 
+	void SwapLine(BYTE* src, BYTE* dst, int nSize)
+	{
+		int* a = (int*)src;
+		int* b = (int*)dst;
+		for (int i = 0; i < nSize / 4; i++)
+		{
+			int t = *a;
+			*a = *b;
+			*b = t;
+
+			a++;
+			b++;
+		}
+	}
+
 	CVideoRenderer::CVideoRenderer(LPCTSTR lpName, LPUNKNOWN lpUnk, HRESULT* phr)
 		: CBaseRenderer(CLSID_VideoOutputFilter, lpName, lpUnk, phr)
 	{
@@ -17,7 +32,7 @@ namespace e
 		m_nOutWidth = kOutVideoWidth;
 		m_nOutHeight = kOutVideoHeight;
 		m_nOutBitCount = kOutVideoBitCount;
-		m_ffScaler.SetAttribute(SWS_FMT_BGR24, SWS_FMT_BGRA, SWS_SA_BILINEAR);
+		m_ffScaler.SetAttribute(SWS_FMT_RGB24, SWS_FMT_BGRA, SWS_SA_BILINEAR);
 
 		SetOutputFormat(kOutVideoWidth, kOutVideoHeight);
 	}
@@ -59,7 +74,7 @@ namespace e
 			eType = IYUV;
 		}else if (IsEqualGUID(subtype, MEDIASUBTYPE_RGB24)){
 			eType = RGB24;
-			m_ffScaler.SetAttribute(SWS_FMT_RGB24, SWS_FMT_BGRA, SWS_SA_BILINEAR);
+			m_ffScaler.SetAttribute(SWS_FMT_BGR24, SWS_FMT_BGRA, SWS_SA_BILINEAR);
 		}else if (IsEqualGUID(subtype, MEDIASUBTYPE_RGB32)){
 			eType = RGB32;
 		}else if (IsEqualGUID(subtype, MEDIASUBTYPE_YV12)){
@@ -88,6 +103,18 @@ namespace e
 		m_pOutBuffer = (BYTE*)realloc(m_pOutBuffer, nSize);
 		if (m_pOutBuffer == NULL) return E_OUTOFMEMORY;
 		memset(m_pOutBuffer, 0, nSize);
+		return S_OK;
+	}
+
+	HRESULT CVideoRenderer::ReverseBitmap(BYTE* pData, int nWidth, int nHeight, int nBitCount)
+	{
+		int nLineBytes = WidthBytes(nWidth*nBitCount);
+		for (int y = 0; y < nHeight / 2; y++)
+		{
+			BYTE* p0 = pData + y * nLineBytes;
+			BYTE* p1 = pData + (nHeight - 1 - y)*nLineBytes;
+			SwapLine(p0, p1, nLineBytes);
+		}
 		return S_OK;
 	}
 
@@ -124,6 +151,19 @@ namespace e
 				bool bRet = m_ffScaler.Scale(pData, nWidth, nHeight, nWidth * 2, m_pOutBuffer, m_nOutWidth, m_nOutHeight, nLineBytes);
 				pData = m_pOutBuffer;
 				lSize = nLineBytes *  m_nOutHeight;
+				nWidth = m_nOutWidth;
+				nHeight = m_nOutHeight;
+				nBitCount = m_nOutBitCount;
+			}
+			else if (m_eVideoType == RGB24)
+			{
+				//int nInLineBytes = WidthBytes(nBitCount*nWidth);
+				int nInLineBytes = nWidth * 3;
+				int nOutLineBytes = WidthBytes(m_nOutBitCount*m_nOutWidth);
+				bool bRet = m_ffScaler.Scale(pData, nWidth, nHeight, nInLineBytes, m_pOutBuffer, m_nOutWidth, m_nOutHeight, nOutLineBytes);
+				ReverseBitmap(m_pOutBuffer, m_nOutWidth, m_nOutHeight, m_nOutBitCount);
+				pData = m_pOutBuffer;
+				lSize = nOutLineBytes *  m_nOutHeight;
 				nWidth = m_nOutWidth;
 				nHeight = m_nOutHeight;
 				nBitCount = m_nOutBitCount;

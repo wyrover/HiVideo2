@@ -57,9 +57,9 @@ namespace e
 		return ::WriteFile(hFile, pBuffer, dwSize, &dwWrite, NULL) && (dwSize == dwWrite);
 	}
 
-	inline bool Skip(DWORD dwSkip, HANDLE hFile)
+	inline bool Skip(DWORD dwSkip, DWORD dwMoveFlag, HANDLE hFile)
 	{
-		return SetFilePointer(hFile, dwSkip, NULL, FILE_CURRENT) != INVALID_SET_FILE_POINTER;
+		return SetFilePointer(hFile, dwSkip, NULL, dwMoveFlag) != INVALID_SET_FILE_POINTER;
 	}
 
 	inline void memswp(BYTE* dst, BYTE* src, int size)
@@ -243,6 +243,13 @@ namespace e
 		return *this;
 	}
 
+	void CBitmap::Clear(void)
+	{
+		if (m_pBits){
+			memset(m_pBits, 0, m_nSize);
+		}
+	}
+
 	BOOL CBitmap::Load(LPCTSTR lpFileName
 		, LPDWORD pWidth
 		, LPDWORD pHeight
@@ -297,7 +304,7 @@ namespace e
 			*ppBits = (BYTE*)malloc( nNewSize);
 			if (*ppBits == NULL)break; 
 
-			if (!Skip(header.bfOffBits, hFile)) break;
+			if (!Skip(header.bfOffBits, FILE_BEGIN,hFile)) break;
 			if (!Read(*ppBits, nNewSize, hFile)) break;
 
 			*pWidth = (int)header.biWidth;
@@ -306,7 +313,7 @@ namespace e
 			*pSize = nNewSize;
 
 			BYTE* p0 = (BYTE*)*ppBits;
-			BYTE* p1 = (BYTE*)*ppBits + nNewSize;
+			BYTE* p1 = (BYTE*)*ppBits + nNewSize-nLineSize;
 			for (DWORD i = 0; i < header.biHeight/2; i++)
 			{
 				memswp(p0, p1, nLineSize);

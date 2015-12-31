@@ -18,6 +18,7 @@ namespace e
 		void Block2Graph(CBitmap* pGraph, CBitmap* pBlock, int nBlockSize);
 		void Graph2Block(CBitmap* pBlock, CBitmap* pGraph, int nBlockSize);
 		void RemoveNoise(CBitmap* pGraph);
+		void CalcEdge(CBitmap* pGraph, CBitmap* pEdge);
 	protected:
 		void CalcKernals(float m_fSigma);
 		void Convolve(void* pSrc, void* pDst, int nWidth, int nHeight, int nBitCount);
@@ -25,7 +26,7 @@ namespace e
 		void SetBlock(int nValue, void* pData, int nBitCount, int nLineBytes, int nBlockSize);
 		void Erosion(CBitmap* pGraph, int nDirection);//¸¯Ê´ºÚµã
 		void Dilation(CBitmap* pGraph, int nDirection);//ÅòÕÍºÚµã
-		void RemoveBlock(CBitmap* pGraph, int nThreshold);
+		void RemoveBlock(CBitmap* pGraph, int nMinSize, int nMaxSize);		
 	protected:
 		int m_nRadius;
 		float m_fSigma;

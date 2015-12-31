@@ -98,6 +98,19 @@ namespace e
 		return hr;
 	}
 
+	HRESULT CVideoDevice::SetCurrentOutputFormat(LPCTSTR lpFormatName)
+	{	
+		int nWidth, nHeight;
+		TCHAR szType[16] = { 0 };
+		_stscanf_s(lpFormatName, _T("%s %dx%d"), szType, 16, &nWidth, &nHeight);
+
+		VideoType eType;
+		HRESULT hr = GetVideoType(szType, eType);
+		if (FAILED(hr)) return hr;
+
+		return SetCurrentOutputFormat(nWidth, nHeight, eType);
+	}
+
 	HRESULT CVideoDevice::SetCurrentOutputFormat(int nWidth, int nHeight, VideoType eType)
 	{
 		HRESULT hr = S_OK;
@@ -206,6 +219,41 @@ namespace e
 		case MJPG:subtype = MEDIASUBTYPE_MJPG; break;
 		default: hr = E_FAIL; break;
 		}
+		return hr;
+	}
+
+	HRESULT CVideoDevice::GetVideoType(LPCTSTR lpType, VideoType& eType)
+	{
+		HRESULT hr = S_OK;
+		if (!_tcscmp(lpType, _T("IYUV"))){
+			eType = IYUV;
+		}else if (!_tcscmp(lpType, _T("IMC1"))){
+			eType = IMC1;
+		}else if (!_tcscmp(lpType, _T("IMC2"))){
+			eType = IMC2;
+		}else if (!_tcscmp(lpType, _T("IMC3"))){
+			eType = IMC3;
+		}else if (!_tcscmp(lpType, _T("IMC4"))){
+			eType = IMC4;
+		}else if (!_tcscmp(lpType, _T("YV12"))){
+			eType = YV12;
+		}else if (!_tcscmp(lpType, _T("RGB24"))){
+			eType = RGB24;
+		}else if (!_tcscmp(lpType, _T("RGB32"))){
+			eType = RGB32;
+		}else if (!_tcscmp(lpType, _T("YUYV"))){
+			eType = YUYV;
+		}else if (!_tcscmp(lpType, _T("YUY2"))){
+			eType = YUY2;
+		}else if (!_tcscmp(lpType, _T("I420"))){
+			eType = I420;
+		}else if (!_tcscmp(lpType, _T("MJPG"))){
+			eType = MJPG;
+		}else if (!_tcscmp(lpType, _T("UKNOWN"))){
+			eType = UNKNOWN;
+			hr = E_FAIL;
+		}
+
 		return hr;
 	}
 

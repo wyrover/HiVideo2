@@ -36,12 +36,14 @@ namespace e
 			, int nBitCount);
 		//copy bitmap
 		BOOL Store(CBitmap* pSrc);
-		//destroy bitmap
-		void Destroy(void);
 		//load from file
 		BOOL Load(LPCTSTR lpFileName);
 		//write to file
 		BOOL Save(LPCTSTR lpFileName);
+		//set to zero
+		void Clear(void);
+		//destroy bitmap
+		void Destroy(void);
 		//static method load bitmap from file
 		static BOOL Load(LPCTSTR lpFileName
 			, LPDWORD pWidth

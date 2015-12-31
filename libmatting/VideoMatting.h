@@ -19,6 +19,7 @@ namespace e
 		real_bg_graph,
 		current_image,
 		current_graph,
+		current_edge,
 		current_trimap,
 		current_alpha,
 		_max_image_count

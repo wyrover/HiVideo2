@@ -7,11 +7,11 @@ namespace e
 	class CRegion
 	{
 	public:
+		CRegion(void);
 		CRegion(int nWidth, int nHeight);
 		virtual ~CRegion(void);
 		bool Initialize(int nWidth, int nHeight);
-		bool RemoveBlock(CBitmap* pBitmap, int nMinCount, bool bBlackPixel);
-		void Clean(void);
+		bool RemoveBlock(CBitmap* pBitmap, int nMinSize, int nMaxSize, bool bBlackPixel);
 	protected:	
 		struct Point{
 			int x, y;
@@ -27,7 +27,7 @@ namespace e
 			std::vector<Point> points;
 		};
 
-		bool FindRegion(CBitmap* pBitmap, int nMinCount, bool bBlackPixel);
+		bool FindRegion(CBitmap* pBitmap, int nMinSize, int nMaxSize, bool bBlackPixel);
 		void EraseRegion(CBitmap* pBitmap, Item& item, int nValue);
 
 		int m_nCurrent;

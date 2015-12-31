@@ -217,7 +217,7 @@ namespace e
 			}
 			else if (msg.pSender->GetName() == _T("com_format_list"))
 			{
-
+				SwitchFormat();
 			}
 		}
 		else if (msg.sType == _T("valuechanged"))
@@ -267,9 +267,9 @@ namespace e
 
 	bool CMainWindow::SwitchFormat(void)
 	{
-		int nWidth = 640;
-		int nHeight = 480;
-		HRESULT hr = m_pVideoDevice->SetCurrentOutputFormat();
+		auto pControl = static_cast<DuiLib::CComboUI*>(m_pm.FindControl(_T("com_format_list")));
+		HRESULT hr = m_pVideoDevice->SetCurrentOutputFormat(pControl->GetText());
+		return SUCCEEDED(hr);
 	}
 
 	void CMainWindow::OnAddDevice(const TCHAR* pszDeviceName)
@@ -307,18 +307,26 @@ namespace e
 			{
 				m_dwStartTime = GetTickCount();
 			}
-
+#ifndef _DEBUG
 			if (GetTickCount() - m_dwStartTime < 5 * 1000)
 			{
 				return;
 			}
+#endif
 			//init & set virtual background
 			m_pVideoMatting->InitializeImage(nWidth, nHeight, nBitCount);
 			m_pVideoMatting->SetVirtualBGImage(pData, nSize, nWidth, nHeight, nBitCount);
 			//set real background
+#ifdef _DEBUG
+			CBitmap bg(_T("f:\\bk.bmp"));
+			m_pVideoMatting->SetRealBGImage(bg.GetBits(), nSize, nWidth, nHeight, nBitCount);
+			auto pBGVideo = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("bk_video")));
+			pBGVideo->DoRenderSample(bg.GetBits(), nWidth, nHeight, nBitCount);
+#else
 			m_pVideoMatting->SetRealBGImage(pData, nSize, nWidth, nHeight, nBitCount);
 			auto pBGVideo = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("bk_video")));
 			pBGVideo->DoRenderSample(pData, nWidth, nHeight, nBitCount);
+#endif
 			m_dwState = MattingVideo;
 		}
 		else if (m_dwState == MattingVideo)

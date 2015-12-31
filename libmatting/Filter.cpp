@@ -1,6 +1,5 @@
 #include "stdafx.h"
-#include "ImageFilter.h"
-#include "ColorSpace.h"
+#include "Filter.h"
 #include "ImageBlur.h"
 #include "Region.h"
 
@@ -276,7 +275,7 @@ namespace e
 		}
 	}
 
-	//腐蚀黑点
+	//腐蚀黑点(消去黑点)
 	void CImageFilter::Erosion(CBitmap* pGraph, int nDirection)
 	{
 		int nWidth = pGraph->Width();
@@ -338,8 +337,7 @@ namespace e
 		int nWidth = pGraph->Width();
 		int nHeight = pGraph->Height();
 		int nBitCount = pGraph->BitCount();
-
-		*m_pGraphTemp = *pGraph;
+		m_pGraphTemp->Store(pGraph);
 
 		//水平方向
 		if (nDirection & 0x01)
@@ -389,7 +387,47 @@ namespace e
 		}
 	}
 
-	void CImageFilter::RemoveBlock(CBitmap* pGraph, int nThreshold)
+	void CImageFilter::CalcEdge(CBitmap* pGraph, CBitmap* pEdge)
+	{
+		int nWidth = pGraph->Width();
+		int nHeight = pGraph->Height();
+		int nLineSize = pGraph->LineSize();
+		
+		//prewitt算子
+// 		for (int y = 0; y < nHeight-1; y++)
+// 		{
+// 			uint8* px = pGraph->GetBits(1, y);
+// 			uint8* py = px + nLineSize;
+// 			uint8* pd = pEdge->GetBits(0, y);
+// 			for (int x = 0; x < nWidth-1; x++)
+// 			{
+// 				//G(x,y)=abs(f(x,y)-f(x+1,y+1))+abs(f(x,y+1)-f(x+1,y))
+// 				int gx = abs(*px - *(py + 1)) + abs(*py - *(px + 1));
+// 				*pd++ = min(gx, 255);
+// 				px++;
+// 				py++;
+// 			}
+// 		}
+
+		//laplacian算子
+		for (int y = 1; y < nHeight - 1; y++)
+		{
+			uint8* p1 = pGraph->GetBits(1, y);
+			uint8* p0 = p1 - nLineSize;
+			uint8* p2 = p1 + nLineSize;
+			uint8* p3 = pEdge->GetBits(1, y);
+			for (int x = 1; x < nWidth - 1; x++)
+			{
+				int gx = abs((*(p1 - 1) + *(p1 + 1) + *p0 + *p2) - 4 * (*p1));
+				*p3++ = min(gx, 255);// & *p1
+				p0++;
+				p1++;
+				p2++;
+			}
+		}
+	}
+
+	void CImageFilter::RemoveBlock(CBitmap* pGraph, int nMinSize, int nMaxSize)
 	{
 		if (m_pRegion == NULL)
 		{
@@ -397,16 +435,23 @@ namespace e
 			assert(m_pRegion);
 		}
 
-		m_pRegion->RemoveBlock(pGraph, nThreshold, true);
+		m_pRegion->RemoveBlock(pGraph, nMinSize, nMaxSize, true);
 	}
 
 	void CImageFilter::RemoveNoise(CBitmap* pGraph)
 	{
 		pGraph->Save(_T("f:\\graph0.bmp"));
-		Erosion(pGraph, 0x03);
-		Dilation(pGraph, 0x03);	
+		for (int i = 0; i < 1; i++)
+		{
+			Erosion(pGraph, 0x03);
+			//Erosion(pGraph, 0x03);
+			RemoveBlock(pGraph, 1, 10);
+			Dilation(pGraph, 0x03);
+			//Dilation(pGraph, 0x03);
+			RemoveBlock(pGraph, 30, 50);
+		}
  		pGraph->Save(_T("f:\\graph1.bmp"));
-		RemoveBlock(pGraph, 25);
-		pGraph->Save(_T("f:\\graph2.bmp"));
+		//RemoveBlock(pGraph, 40);
+		//pGraph->Save(_T("f:\\graph2.bmp"));
 	}
 }
