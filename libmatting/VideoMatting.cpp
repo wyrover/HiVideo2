@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "VideoMatting.h"
 #include "Bitmap.h"
-#include "ImageFilter.h"
+#include "Filter.h"
+#include "Differen.h"
 #include "ImageDumper.h"
 #include "ColorSpace.h"
 
@@ -18,6 +19,9 @@ namespace e
 			m_pImages[i] = new CBitmap();
 			assert(m_pImages[i]);
 		}
+
+		m_pDiffer = new CDifferen();
+		assert(m_pDiffer);
 
 		m_pFilter = new CImageFilter();
 		assert(m_pFilter);
@@ -59,7 +63,7 @@ namespace e
 			&& (m_nState & STATE_SET_VBG);
 	}
 
-	bool CVideoMatting::InitializeImage(int nWidth, int nHeight, int nBitCount)
+	bool CVideoMatting::Initialize(int nWidth, int nHeight, int nBitCount)
 	{
 		if (!GetBitmap(real_bg_image)->Create(nWidth, nHeight, 32, NULL, true))
 			return false;
@@ -80,12 +84,13 @@ namespace e
 		return true;
 	}
 
-	void CVideoMatting::SetRealBGImage(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
+	void CVideoMatting::SetBackground(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
 	{
 #ifndef _DEBUG 
-		CBitmap::Save(_T("f:\\bk.bmp"), nWidth, nHeight, nBitCount, pData);
+		CBitmap::Save(_T("f:\\bg.bmp"), nWidth, nHeight, nBitCount, pData);
 #endif
 		StoreImage(real_bg_image, pData, nSize, nWidth, nHeight, nBitCount);
+		StoreImage(real_bg_block, pData, nSize, nWidth, nHeight, nBitCount);
 		PreprocessBackground();
 		m_nState &= STATE_SET_RBG;
 	}
@@ -106,9 +111,11 @@ namespace e
 	void CVideoMatting::SetMattingThreshold(int nIndex, int nThreshold)
 	{
 		m_nThreshold[nIndex] = nThreshold;
+		if (nIndex == 0)
+			m_pDiffer->SetThreshold(nThreshold);
 	}
 
-	void CVideoMatting::SetGraphNoiseEnable(bool bEnable)
+	void CVideoMatting::RemoveNoiscEnable(bool bEnable)
 	{
 		SetOption(OPTION_GRAPHNOISE, bEnable);
 	}
@@ -139,7 +146,7 @@ namespace e
 
 	void CVideoMatting::PreprocessBackground(void)
 	{
-		CBitmap* pBG = GetBitmap(real_bg_image);
+		CBitmap* pBG = GetBitmap(real_bg_block);
 		//对背景图片进行预处理
 		PreprocessImage(pBG);
 		//转化为灰度图并保存到alpha通道
@@ -148,32 +155,26 @@ namespace e
 
 	void CVideoMatting::PreprocessForeground(void)
 	{
-		CBitmap* pFG = GetBitmap(current_image);
+		CBitmap* pFG = GetBitmap(current_block);
 		//对前景图片进行预处理
 		PreprocessImage(pFG);
 		//转化为灰度图并保存到alpha通道
 		m_pFilter->ConvertGray(pFG);
 	}
 
-	template<class T> T square(T x)
+	inline int square(int x)
 	{
 		return x * x;
 	}
 
-	template<class T> T distance(T&r0, T&b0, T&g0, T&a0, T&r1, T&b1)
+	inline int distance(int r0, int b0, int g0, int a0, int r1, int b1, int g1, int a1)
 	{
-		return sqrt(square(r0 - r1) + square(b0 - b1) + square(g0 - g1));
-	}
-
-	template<class T> int distance(T&r0, T&b0, T&g0, T&a0, T&r1, T&b1, T&g1, T&a1)
-	{
-		//T d1 = abs(a0 - a1);
-		//T d0 = abs(r0 - r1) + abs(b0 - b1) + abs(g0 - g1);
+		//int d1 = abs(a0 - a1);
+		//return abs(r0 - r1) + abs(b0 - b1) + abs(g0 - g1);
 		return (int)sqrt(square(r0 - r1) + square(b0 - b1) + square(g0 - g1));
 	}
 
-	//初步计算mask
-	void CVideoMatting::CalcTrimap(void* pTrimap, void* pBG, void* pFG, int nWidth, int nHeight, int nBitCount)
+	void CVideoMatting::CalcDiff(void* pDiff, void* pBG, void* pFG, int nWidth, int nHeight, int nBitCount)
 	{
 		int nLineSize = WidthBytes(nWidth * nBitCount);
 		int nPixelSize = nBitCount >> 3;
@@ -184,12 +185,13 @@ namespace e
 		{
 			uint8* pSrc0 = (uint8*)pBG + y * nLineSize;
 			uint8* pSrc1 = (uint8*)pFG + y * nLineSize;
-			uint8* pDest = (uint8*)pTrimap + y * nLineSize;
+			uint8* pDest = (uint8*)pDiff + y * nLineSize;
 
 			for (int x = 0; x < nWidth; x++)
 			{
 				int dx = distance(pSrc0[0], pSrc0[1], pSrc0[2], pSrc0[3], pSrc1[0], pSrc1[1], pSrc1[2], pSrc1[3]);
-				dx = (dx < t0) ? 0 : ((dx < t1) ? 128 : 255);
+				//dx = (dx < t0) ? 0 : ((dx < t1) ? 128 : 255);
+				dx = (dx < t0) ? 0 : 255;
 				pDest[0] = pDest[1] = pDest[2] = dx;
 				pSrc0 += nPixelSize;
 				pSrc1 += nPixelSize;
@@ -198,16 +200,15 @@ namespace e
 		}
 	}
 
-	void CVideoMatting::GraphProc(void)
+	void CVideoMatting::CalcAlpha(void* pAlpha
+		, void* pTrimap
+		, void* pBG
+		, void* pFG
+		, int nWidth
+		, int nHeight
+		, int nBitCount)
 	{
-		CBitmap* pGraph = GetBitmap(current_graph);
-		int nWidth = pGraph->Width();
-		int nHeight = pGraph->Height();
-	}
-
-	void CVideoMatting::CalcAlpha(void* pAlpha, void* pBG, void* pFG, int nWidth, int nHeight, int nBitCount)
-	{
-
+	
 	}
 
 	void CVideoMatting::CalcMatting(void* pData, void* pAlpha, int nWidth, int nHeight, int nBitCount)
@@ -239,25 +240,49 @@ namespace e
 	{
 		//保存一个副本
 		StoreImage(current_image, pData, nSize, nWidth, nHeight, nBitCount);
+		StoreImage(current_block, pData, nSize, nWidth, nHeight, nBitCount);
 		//预处理
 		PreprocessForeground();
+		{
+			CBitmap* pBG = GetBitmap(real_bg_block);
+			CBitmap* pFG = GetBitmap(current_block);
+			CBitmap* pAlpha = GetBitmap(current_alpha);
+			//m_pDiffer->Differen(pAlpha, pBG, pFG);
+			//pAlpha->Save(_T("f:\\diff.bmp"));
+			m_pDiffer->Differen(pData, pBG->GetBits(), pData, nWidth, nHeight, nBitCount);
+			return;
+		}
 		//计算trimap，黑点表示用背景，白点表示用前景
 		CBitmap* pBG = GetBitmap(real_bg_image);
-		CBitmap* pFG = GetBitmap(current_image);
+		CBitmap* pFG = GetBitmap(current_block);
 		CBitmap* pTG = GetBitmap(current_trimap);
-		CalcTrimap(pTG->GetBits(), pBG->GetBits(), pFG->GetBits(), nWidth, nHeight, nBitCount);
+		
+
+
+
+		CalcDiff(pTG->GetBits(), pBG->GetBits(), pFG->GetBits(), nWidth, nHeight, nBitCount);
 		//计算alpha
 		if (m_nOptions & OPTION_GRAPHNOISE)
 		{
 			CBitmap* pGraph = GetBitmap(current_graph);
 			m_pFilter->Block2Graph(pGraph, pTG, m_nBlockSize);
 			m_pFilter->RemoveNoise(pGraph);
-			m_pFilter->Graph2Block(pTG, pGraph, m_nBlockSize);
+			//m_pFilter->Graph2Block(pTG, pGraph, m_nBlockSize);
 
 			CBitmap* pEdge = GetBitmap(current_edge);
 			memset(pEdge->GetBits(), 0, pEdge->Size());
 			m_pFilter->CalcEdge(pGraph, pEdge);
 			pEdge->Save(_T("f:\\edge.bmp"));
+
+			m_pFilter->CalcMerge(pGraph, pGraph, pEdge);
+			pGraph->Save(_T("f:\\trimap.bmp"));
+			m_pFilter->Graph2Block(pTG, pGraph, m_nBlockSize);
+
+			CBitmap* pAlpha = GetBitmap(current_alpha);
+			pBG = GetBitmap(real_bg_image);
+			pFG = GetBitmap(current_image);
+			m_pFilter->CalcAlpha(pAlpha, pTG, pBG, pFG);
+			pAlpha->Save(_T("f:\\alpha.bmp"));
 		}
 		//抠图处理
 		CalcMatting(pData, pTG->GetBits(), nWidth, nHeight, nBitCount);
@@ -268,6 +293,7 @@ namespace e
 		//GetBitmap(current_trimap)->Save(pFileName);
 		CBitmap* pBG = GetBitmap(real_bg_image);
 		CBitmap* pFG = GetBitmap(current_image);
+		pFG->Save(pFileName);
 		//compare images
 		//m_pDumper->Difference(pFileName, pBG, pFG);
 	}
@@ -279,6 +305,7 @@ namespace e
 
 	void CVideoMatting::Clean(void)
 	{
+		SafeDelete(&m_pDiffer);
 		SafeDelete(&m_pFilter);
 		SafeDelete(&m_pDumper);
 		for (int i = 0; i < m_nNumberOfImage; i++)

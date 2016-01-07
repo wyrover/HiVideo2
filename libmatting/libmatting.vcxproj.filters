@@ -30,15 +30,6 @@
     <ClInclude Include="VideoMatting.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ColorSpace.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageFilter.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageTrimap.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ImageDumper.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -51,21 +42,24 @@
     <ClInclude Include="Region.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Trimap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Filter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Differen.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoMatting2.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="VideoMatting.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ColorSpace.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageFilter.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageTrimap.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ImageDumper.cpp">
@@ -78,6 +72,18 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Region.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Trimap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Filter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Differen.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoMatting2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

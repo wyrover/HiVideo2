@@ -48,44 +48,44 @@ namespace e
 		int nWidth = pBitmap->Width();
 		int nHeight = pBitmap->Height();
 		int nBitCount = pBitmap->BitCount();
-		int x0, y0, x1, y1, nHead, nRear;
-		int nDirect[4][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
-		int nValue[2] = { 0 };
+		int x1, y1, nHead, nRear;
+		int nKeepValue = 0, nWipeValue = 0;
+		static int nDirection[4][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
 
 		if (bBlackPixel) {
-			nValue[0] = 0; nValue[1] = 255;
+			nWipeValue = 0; nKeepValue = 255;
 		}else{
-			nValue[0] = 255; nValue[1] = 0;
+			nWipeValue = 255; nKeepValue = 0;
 		}
 
 		nHead = nRear = 0;
+		m_Regions[m_nCurrent].points.clear();
+
 		for (int y = 0; y < nHeight; y++)
 		{
 			for (int x = 0; x < nWidth; x++)
 			{
-				uint8* p0 = m_pTemp->GetBits(x, y);
-				if (*p0 != nValue[0]) continue;
-				*p0 = nValue[1];
+				BYTE* pCurrent = m_pTemp->GetBits(x, y);
+				if (*pCurrent != nWipeValue) continue;
+				*pCurrent = nKeepValue;
 
 				Point point(x, y);
-				m_pQueue[nRear++] = point;
-				m_Regions[m_nCurrent].points.clear();
+				m_pQueue[nRear++] = point;		
 				m_Regions[m_nCurrent].points.push_back(point);
 
 				while (nHead < nRear)
 				{
 					point = m_pQueue[nHead++];
-
 					for (int i = 0; i < 4; i++)
 					{
-						x1 = point.x + nDirect[i][0];
-						y1 = point.y + nDirect[i][1];
+						x1 = point.x + nDirection[i][0];
+						y1 = point.y + nDirection[i][1];
 						if ((x1 >= 0 && x1 < nWidth) && (y1 >= 0 && y1 < nHeight))
 						{
-							uint8* p1 = m_pTemp->GetBits(x1, y1);
-							if (*p1 == nValue[0])
+							BYTE* pNext = m_pTemp->GetBits(x1, y1);
+							if (*pNext == nWipeValue)
 							{
-								*p1 = nValue[1];
+								*pNext = nKeepValue;
 								point.x = x1; point.y = y1;
 								m_pQueue[nRear++] = point;
 								m_Regions[m_nCurrent].points.push_back(point);
@@ -95,7 +95,7 @@ namespace e
 				}//end while (nHead < nRear)
 
 				if (m_Regions[m_nCurrent].points.size()>=(size_t)nMinSize && 
-					m_Regions[m_nCurrent].points.size() <= (size_t)nMaxSize)
+					m_Regions[m_nCurrent].points.size()<=(size_t)nMaxSize)
 				{
 					m_nCurrent++;
 				}
@@ -109,28 +109,24 @@ namespace e
 		return true;
 	}
 
-	void CRegion::EraseRegion(CBitmap* pBitmap, Item& item, int nValue)
+	inline void CRegion::EraseRegion(CBitmap* pBitmap, Item& item, int nValue)
 	{
 		for (size_t i = 0; i < item.points.size(); i++)
 		{
 			int x = item.points[i].x, y = item.points[i].y;
-			uint8* p = pBitmap->GetBits(x, y);
+			BYTE* p = pBitmap->GetBits(x, y);
 			*p = nValue;
 		}
-
-		Log(_T("erase region size:%u"), item.points.size());
 	}
 
 	bool CRegion::RemoveBlock(CBitmap* pBitmap, int nMinSize, int nMaxSize, bool bBlackPixel)
 	{
 		m_nCurrent = 0;
 		FindRegion(pBitmap, nMinSize, nMaxSize, bBlackPixel);
-
 		for (int i = 0; i < m_nCurrent; i++)
 		{
 			EraseRegion(pBitmap, m_Regions[i], bBlackPixel ? 255 : 0);
 		}
-
 		return true;
 	}
 }

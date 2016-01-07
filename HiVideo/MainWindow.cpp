@@ -31,7 +31,7 @@ namespace e
 		m_pVideoDevice = new CVideoDevice(&hr);
 		ASSERT(m_pVideoDevice);
 
-		m_pVideoMatting = new CVideoMatting();
+		m_pVideoMatting = new CVideoMatting2();
 		ASSERT(m_pVideoMatting);
 
 		m_pVideoEffect = new CImageEffect();
@@ -202,7 +202,8 @@ namespace e
 			}else if (msg.pSender->GetName() == _T("btn_video_matting")){
 				OnVideoMatting();
 			}else if (msg.pSender->GetName() == _T("btn_video_type")){
-				OnVideoType();
+				//OnVideoType();
+				OnVideoSave();
 			}else if (msg.pSender->GetName() == _T("btn_video_dist")){
 				OnVideoDistance();
 			}else if (msg.pSender->GetName() == _T("btn_graph_noise")){
@@ -314,16 +315,16 @@ namespace e
 			}
 #endif
 			//init & set virtual background
-			m_pVideoMatting->InitializeImage(nWidth, nHeight, nBitCount);
+			m_pVideoMatting->Initialize(nWidth, nHeight, nBitCount);
 			m_pVideoMatting->SetVirtualBGImage(pData, nSize, nWidth, nHeight, nBitCount);
 			//set real background
 #ifdef _DEBUG
-			CBitmap bg(_T("f:\\bk.bmp"));
-			m_pVideoMatting->SetRealBGImage(bg.GetBits(), nSize, nWidth, nHeight, nBitCount);
+			CBitmap bg(_T("f:\\bg.bmp"));
+			m_pVideoMatting->SetBackground(bg.GetBits(), nSize, nWidth, nHeight, nBitCount);
 			auto pBGVideo = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("bk_video")));
 			pBGVideo->DoRenderSample(bg.GetBits(), nWidth, nHeight, nBitCount);
 #else
-			m_pVideoMatting->SetRealBGImage(pData, nSize, nWidth, nHeight, nBitCount);
+			m_pVideoMatting->SetBackground(pData, nSize, nWidth, nHeight, nBitCount);
 			auto pBGVideo = static_cast<DuiLib::CVideoUI*>(m_pm.FindControl(_T("bk_video")));
 			pBGVideo->DoRenderSample(pData, nWidth, nHeight, nBitCount);
 #endif
@@ -391,7 +392,7 @@ namespace e
 
 		TCHAR szFileName[MAX_PATH] = { 0 };
 		DWORD dwTime = GetTickCount();
-		_stprintf_s(szFileName, _T("f:\\diff_%u.txt"), dwTime);
+		_stprintf_s(szFileName, _T("f:\\fg.bmp"), dwTime);
 		m_pVideoMatting->OnSampleSave(szFileName);
 	}
 
@@ -403,7 +404,7 @@ namespace e
 	void CMainWindow::OnGraphNoise(void)
 	{
 		static bool bEnable = true;
-		m_pVideoMatting->SetGraphNoiseEnable(bEnable);
+		m_pVideoMatting->RemoveNoiscEnable(bEnable);
 		bEnable = !bEnable;
 	}
 }

@@ -17,8 +17,10 @@ namespace e
 	enum ImageType{
 		real_bg_image,
 		real_bg_graph,
+		real_bg_block,
 		current_image,
 		current_graph,
+		current_block,
 		current_edge,
 		current_trimap,
 		current_alpha,
@@ -26,6 +28,7 @@ namespace e
 	};
 
 	class CBitmap;
+	class CDifferen;
 	class CImageFilter;
 	class CImageDumper;
 	class CVideoMatting
@@ -33,11 +36,11 @@ namespace e
 	public:
 		CVideoMatting(void);
 		virtual ~CVideoMatting(void);
-		bool InitializeImage(int nWidth, int nHeight, int nBitCount);
-		void SetRealBGImage(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
+		bool Initialize(int nWidth, int nHeight, int nBitCount);
+		void SetBackground(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
 		void SetVirtualBGImage(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
 		void SetMattingThreshold(int nIndex, int nThreshold);
-		void SetGraphNoiseEnable(bool bEnable);
+		void RemoveNoiscEnable(bool bEnable);
 		void OnSampleProc(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
 		void OnSampleSave(const TCHAR* pFileName);
 		void Reset(void);
@@ -49,9 +52,8 @@ namespace e
 		void PreprocessImage(CBitmap* pImage);
 		void PreprocessBackground(void);
 		void PreprocessForeground(void);
-		void GraphProc(void);
-		void CalcTrimap(void* pTrimap, void* pBG, void* pFG, int nWidth, int nHeight, int nBitCount);
-		void CalcAlpha(void* pAlpha, void* pBG, void* pFG, int nWidth, int nHeight, int nBitCount);
+		void CalcDiff(void* pDiff, void* pBG, void* pFG, int nWidth, int nHeight, int nBitCount);
+		void CalcAlpha(void* pAlpha, void* pTrimap, void* pBG, void* pFG, int nWidth, int nHeight, int nBitCount);
 		void CalcMatting(void* pData, void* pAlpha, int nWidth, int nHeight, int nBitCount);
 		void Clean(void);
 	protected:
@@ -62,6 +64,7 @@ namespace e
 		int m_nNumberOfImage;
 		CBitmap** m_pImages;
 		CImageFilter* m_pFilter;
+		CDifferen* m_pDiffer;
 		CImageDumper* m_pDumper;
 	};
 }

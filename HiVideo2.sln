@@ -28,6 +28,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libeffect", "libeffect\libe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcamera", "libcamera\libcamera.vcxproj", "{ACF98023-FF93-4F23-B79C-16DF44578B97}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tools", "Tools\Tools.vcxproj", "{CB38D14C-40C3-4237-B807-166AF42CEEC2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -62,6 +64,10 @@ Global
 		{ACF98023-FF93-4F23-B79C-16DF44578B97}.Debug|Win32.Build.0 = Debug|Win32
 		{ACF98023-FF93-4F23-B79C-16DF44578B97}.Release|Win32.ActiveCfg = Release|Win32
 		{ACF98023-FF93-4F23-B79C-16DF44578B97}.Release|Win32.Build.0 = Release|Win32
+		{CB38D14C-40C3-4237-B807-166AF42CEEC2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CB38D14C-40C3-4237-B807-166AF42CEEC2}.Debug|Win32.Build.0 = Debug|Win32
+		{CB38D14C-40C3-4237-B807-166AF42CEEC2}.Release|Win32.ActiveCfg = Release|Win32
+		{CB38D14C-40C3-4237-B807-166AF42CEEC2}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

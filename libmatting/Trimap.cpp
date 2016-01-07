@@ -221,7 +221,7 @@ namespace e
 		Erosion(m_pGraph, 0x03);
 		m_pRegion->RemoveBlock(m_pGraph, 1, 10, true);
 		Dilation(m_pGraph, 0x03);
-		m_pRegion->RemoveBlock(m_pGraph, 30, 50, true);
+		m_pRegion->RemoveBlock(m_pGraph, 10, 50, true);
 	}
 
 	void CTrimap::EdgeDetect(void)
@@ -262,7 +262,7 @@ namespace e
 		}
 	}
 
-	void CTrimap::CreateTrimap(CBitmap* pTrimap, int nBlockSize)
+	void CTrimap::CalcTrimap(CBitmap* pTrimap, int nBlockSize)
 	{
 		//graph & edge -> trimap
 		int nWidth = pTrimap->Width();
@@ -286,6 +286,90 @@ namespace e
 		}
 	}
 
+	int CTrimap::GetPointValue(int x, int y, CBitmap* pBitmap, int nWidth, int nHeight)
+	{
+		const float fWeight[3][3] = {
+			{ 0.0625f, 0.0625f, 0.0625f },
+			{ 0.0625f, 0.5000f, 0.0625f },
+			{ 0.0625f, 0.0625f, 0.0625f },
+		};
+		
+		int nValue = 0;
+		BYTE* pData = pBitmap->GetBits(x, y);
+		nValue = *pData * fWeight[1][1];
+		pData = pBitmap->GetBits(x > 0 ? x - 1 : x, y > 0 ? y - 1 : y);
+		nValue += *pData * fWeight[0][0];
+		pData = pBitmap->GetBits(x, y > 0 ? y - 1 : y);
+		nValue += *pData * fWeight[0][1];
+		pData = pBitmap->GetBits(x < nWidth ? x + 1 : x, y > 0 ? y - 1 : y);
+		nValue += *pData * fWeight[0][2];
+		pData = pBitmap->GetBits(x > 0 ? x - 1 : x, y);
+		nValue += *pData * fWeight[1][0];
+		pData = pBitmap->GetBits(x < nWidth ? x + 1 : x, y);
+		nValue += *pData * fWeight[1][2];
+		pData = pBitmap->GetBits(x > 0 ? x - 1 : x, y < nHeight ? y + 1 : y);
+		nValue += *pData * fWeight[2][0];
+		pData = pBitmap->GetBits(x, y < nHeight ? y + 1 : y);
+		nValue += *pData * fWeight[2][1];
+		pData = pBitmap->GetBits(x < nWidth ? x + 1 : x, y < nHeight ? y + 1 : y);
+		nValue += *pData * fWeight[2][2];
+		return nValue;
+	}
+
+	inline int square(int x)
+	{
+		return x * x;
+	}
+
+	inline int distance(int r0, int b0, int g0, int r1, int b1, int g1)
+	{
+		return (int)sqrt(square(r0 - r1) + square(b0 - b1) + square(g0 - g1));
+	}
+
+	void CTrimap::CalcAlpha(CBitmap* pAlpha, CBitmap* pBG, CBitmap* pFG, int x, int y)
+	{
+		uint8* pA = pAlpha->GetBits(x, y);
+		uint8* pB = pBG->GetBits(x, y);
+		uint8* pF = pFG->GetBits(x, y);
+
+		int nValue1 = GetPointValue(x, y, pBG, pBG->Width(), pBG->Height());
+		int nValue2 = GetPointValue(x, y, pFG, pFG->Width(), pFG->Height());
+		*pA = square(nValue1 - nValue2) / distance(pB[0], pB[1], pB[2], pF[0], pF[1], pF[2]);
+	}
+
+	void CTrimap::CalcAlpha(CBitmap* pAlpha, CBitmap* pTrimap, CBitmap* pBG, CBitmap* pFG)
+	{
+		int nWidth = pBG->Width();
+		int nHeight = pBG->Height();
+		int nBitCount = pBG->BitCount();
+		int nLineBytes = pBG->LineSize();
+
+		for (int y = 0; y < nHeight; y++)
+		{
+			uint8* pA = pAlpha->GetBits(0, y);
+			uint8* pT = pTrimap->GetBits(0, y);
+			uint8* pB = pBG->GetBits(0, y);
+			uint8* pF = pFG->GetBits(0, y);
+
+			for (int x = 0; x < nWidth; x++)
+			{
+				if (*pT == 0||*pT == 255)
+				{
+					*pA = *pT;
+				}
+				else
+				{
+					CalcAlpha(pAlpha, pBG, pFG, x, y);
+				}
+
+				pA += pAlpha->PixelSize();
+				pT += pTrimap->PixelSize();
+				pB += pBG->PixelSize();
+				pF += pFG->PixelSize();
+			}
+		}
+	}
+
 	void CTrimap::Calculate(CBitmap* pTrimap, CBitmap* pBitmap, int nBlockSize)
 	{
 		//1¡¢blocking and create graph
@@ -295,7 +379,7 @@ namespace e
 		//3¡¢edge detect
 		EdgeDetect();
 		//4¡¢create trimap
-		CreateTrimap(pTrimap, nBlockSize);
+		CalcTrimap(pTrimap, nBlockSize);
 	}
 }
 

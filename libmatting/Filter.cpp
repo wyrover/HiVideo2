@@ -173,6 +173,7 @@ namespace e
 
 	void CImageFilter::ConvertGray(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
 	{
+		assert(nBitCount == 32);
 		int nLineBytes = WidthBytes(nBitCount * nWidth);
 		for (int y = 0; y < nHeight; y++)
 		{
@@ -180,7 +181,7 @@ namespace e
 			for (int x = 0; x < nWidth; x++)
 			{
 				int R = p[0], G = p[1], B = p[2];
-				p[3] = p[2] = p[1] = p[0] = (R * 76 + G * 150 + B * 30 + 128) >> 8;
+				p[0] = p[1] = p[2]  = (R * 76 + G * 150 + B * 30 + 128) >> 8;
 				p += nBitCount >> 3;
 			}
 		}
@@ -199,8 +200,6 @@ namespace e
 			{
 				int R = pSrc[0], G = pSrc[1], B = pSrc[2];
 				pDst[x] = (R * 76 + G * 150 + B * 30 + 128) >> 8;
-				//RGB2LAB(pSrc[0], pSrc[1], pSrc[2], &lval, &aval, &bval);
-				//pDst[x] = max(0, min(lval * 255 / 100, 255));
 				pSrc += nBitCount >> 3;
 			}
 		}
@@ -276,29 +275,31 @@ namespace e
 	}
 
 	//腐蚀黑点(消去黑点)
-	void CImageFilter::Erosion(CBitmap* pGraph, int nDirection)
+	void CImageFilter::Erosion(CBitmap* pGraph, int nDirection, bool bBlackPixel)
 	{
 		int nWidth = pGraph->Width();
 		int nHeight = pGraph->Height();
 		int nBitCount = pGraph->BitCount();
-		*m_pGraphTemp = *pGraph;
+		m_pGraphTemp->Store(pGraph);
+		int nWipeValue = bBlackPixel ? 0 : 255;//remove pixel
+		int nKeepValue = bBlackPixel ? 255 : 0;
 	
 		//水平方向
 		if (nDirection & 0x01)
 		{
 			for (int y = 0; y < nHeight; y++)
 			{
-				uint8* pSrc = m_pGraphTemp->GetBits(0, y);
-				uint8* pDst = pGraph->GetBits(0, y);
+				BYTE* pSrc = m_pGraphTemp->GetBits(0, y);
+				BYTE* pDst = pGraph->GetBits(0, y);
 				for (int x = 0; x < nWidth; x++)
 				{
-					uint8* p0 = x > 0 ? pSrc - 1 : pSrc;
-					uint8* p2 = x < nWidth - 1 ? pSrc + 1 : pSrc;
-					//相邻有一个是白点
-					if (*p0 || *p2)
-						*pDst = 255;
+					BYTE* pSrc1 = x > 0 ? pSrc - 1 : pSrc;
+					BYTE* pSrc2 = x < nWidth - 1 ? pSrc + 1 : pSrc;
+					//相邻有一个是保留值
+					if (*pSrc1 == nKeepValue || *pSrc2 == nKeepValue)
+						*pDst = nKeepValue;
 					else
-						*pDst = 0;
+						*pDst = nWipeValue;
 
 					pSrc++;
 					pDst++;
@@ -312,17 +313,17 @@ namespace e
 			int nLineBytes = WidthBytes(nWidth*nBitCount);
 			for (int x = 0; x < nWidth; x++)
 			{
-				uint8* pSrc = m_pGraphTemp->GetBits(x, 0);
-				uint8* pDst = pGraph->GetBits(x, 0);
+				BYTE* pSrc = m_pGraphTemp->GetBits(x, 0);
+				BYTE* pDst = pGraph->GetBits(x, 0);
 				for (int y = 0; y < nHeight; y++)
 				{
-					uint8* p0 = y > 0 ? pSrc - nLineBytes : pSrc;
-					uint8* p2 = y < nHeight - 1 ? pSrc + nLineBytes : pSrc;
-
-					if (*p0 || *p2)
-						*pDst = 255;
+					BYTE* pSrc1 = y > 0 ? pSrc - nLineBytes : pSrc;
+					BYTE* pSrc2 = y < nHeight - 1 ? pSrc + nLineBytes : pSrc;
+					//相邻有一个是保留值
+					if (*pSrc1 == nKeepValue || *pSrc2 == nKeepValue)
+						*pDst = nKeepValue;
 					else
-						*pDst = 0;
+						*pDst = nWipeValue;
 
 					pSrc += nLineBytes;
 					pDst += nLineBytes;
@@ -332,29 +333,31 @@ namespace e
 	}
 
 	//膨胀黑点
-	void CImageFilter::Dilation(CBitmap* pGraph, int nDirection)
+	void CImageFilter::Dilation(CBitmap* pGraph, int nDirection, bool bBlackPixel)
 	{
 		int nWidth = pGraph->Width();
 		int nHeight = pGraph->Height();
 		int nBitCount = pGraph->BitCount();
 		m_pGraphTemp->Store(pGraph);
+		int nWipeValue = bBlackPixel ? 255 : 0;
+		int nKeepValue = bBlackPixel ? 0 : 255;
 
 		//水平方向
 		if (nDirection & 0x01)
 		{
 			for (int y = 0; y < nHeight; y++)
 			{
-				uint8* pSrc = m_pGraphTemp->GetBits(0, y);
-				uint8* pDst = pGraph->GetBits(0, y);
+				BYTE* pSrc = m_pGraphTemp->GetBits(0, y);
+				BYTE* pDst = pGraph->GetBits(0, y);
 				for (int x = 0; x < nWidth; x++)
 				{
-					uint8* p0 = x > 0 ? pSrc - 1 : pSrc;
-					uint8* p2 = x < nWidth - 1 ? pSrc + 1 : pSrc;
+					BYTE* pSrc1 = x > 0 ? pSrc - 1 : pSrc;
+					BYTE* pSrc2 = x < nWidth - 1 ? pSrc + 1 : pSrc;
 
-					if (!*p0 || !*p2)
-						*pDst = 0;
+					if (*pSrc1 == nKeepValue || *pSrc2 == nKeepValue)
+						*pDst = nKeepValue;
 					else
-						*pDst = 255;
+						*pDst = nWipeValue;
 					
 					pSrc++;
 					pDst++;
@@ -368,17 +371,17 @@ namespace e
 			int nLineBytes = WidthBytes(nWidth*nBitCount);
 			for (int x = 0; x < nWidth; x++)
 			{
-				uint8* pSrc = m_pGraphTemp->GetBits(x, 0);
-				uint8* pDst = pGraph->GetBits(x, 0);
+				BYTE* pSrc = m_pGraphTemp->GetBits(x, 0);
+				BYTE* pDst = pGraph->GetBits(x, 0);
 				for (int y = 0; y < nHeight; y++)
 				{
-					uint8* p0 = y > 0 ? pSrc - nLineBytes : pSrc;
-					uint8* p2 = y < nHeight - 1 ? pSrc + nLineBytes : pSrc;
+					BYTE* pSrc1 = y > 0 ? pSrc - nLineBytes : pSrc;
+					BYTE* pSrc2 = y < nHeight - 1 ? pSrc + nLineBytes : pSrc;
 
-					if (!*p0 || !*p2)
-						*pDst = 0;
+					if (*pSrc1 == nKeepValue || *pSrc2 == nKeepValue)
+						*pDst = nKeepValue;
 					else
-						*pDst = 255;
+						*pDst = nWipeValue;
 
 					pSrc += nLineBytes;
 					pDst += nLineBytes;
@@ -392,42 +395,254 @@ namespace e
 		int nWidth = pGraph->Width();
 		int nHeight = pGraph->Height();
 		int nLineSize = pGraph->LineSize();
-		
-		//prewitt算子
-// 		for (int y = 0; y < nHeight-1; y++)
-// 		{
-// 			uint8* px = pGraph->GetBits(1, y);
-// 			uint8* py = px + nLineSize;
-// 			uint8* pd = pEdge->GetBits(0, y);
-// 			for (int x = 0; x < nWidth-1; x++)
-// 			{
-// 				//G(x,y)=abs(f(x,y)-f(x+1,y+1))+abs(f(x,y+1)-f(x+1,y))
-// 				int gx = abs(*px - *(py + 1)) + abs(*py - *(px + 1));
-// 				*pd++ = min(gx, 255);
-// 				px++;
-// 				py++;
-// 			}
-// 		}
-
+		int nPixelSize = pGraph->PixelSize();
 		//laplacian算子
-		for (int y = 1; y < nHeight - 1; y++)
+		for (int y = 0; y < nHeight; y++)
 		{
-			uint8* p1 = pGraph->GetBits(1, y);
-			uint8* p0 = p1 - nLineSize;
-			uint8* p2 = p1 + nLineSize;
-			uint8* p3 = pEdge->GetBits(1, y);
-			for (int x = 1; x < nWidth - 1; x++)
+			uint8* p1 = pGraph->GetBits(0, y);
+			uint8* p0 = y > 0 ? p1 - nLineSize : p1;
+			uint8* p2 = y < nHeight - 1 ? p1 + nLineSize : p1;
+			uint8* p3 = pEdge->GetBits(0, y);
+			for (int x = 0; x < nWidth; x++)
 			{
-				int gx = abs((*(p1 - 1) + *(p1 + 1) + *p0 + *p2) - 4 * (*p1));
-				*p3++ = min(gx, 255);// & *p1
-				p0++;
-				p1++;
-				p2++;
+				uint8* p4 = x > 0 ? p1 - 1 : p1;
+				uint8* p5 = x < nWidth - 1 ? p1 + 1 : p1;
+				int gx = abs((*p4 + *p5 + *p0 + *p2) - 4 * (*p1));
+				*p3++ = max(0, min(gx, 255)) & *p1;
+				p0 += nPixelSize;
+				p1 += nPixelSize;
+				p2 += nPixelSize;
 			}
 		}
 	}
 
-	void CImageFilter::RemoveBlock(CBitmap* pGraph, int nMinSize, int nMaxSize)
+	void CImageFilter::CalcEdge(void* pGray, int nSize, int nWidth, int nHeight, int nBitCount)
+	{
+		int nPixelSize = nBitCount >> 3;
+		int nLineSize = WidthBytes(nWidth*nBitCount);
+
+		for (int y = 1; y < nHeight-1; y++)
+		{
+			BYTE* p0 = (BYTE*)pGray + y * nLineSize;
+			BYTE* p1 = p0 - nLineSize;
+			BYTE* p2 = p0 + nLineSize;
+			for (int x = 1; x < nWidth-1; x++)
+			{
+				BYTE* p3 = p0 - nPixelSize;
+				BYTE* p4 = p0 + nPixelSize;
+
+// 				BYTE* p5 = p1 - nPixelSize;
+// 				BYTE* p6 = p1 + nPixelSize;
+// 
+// 				BYTE* p7 = p2 - nPixelSize;
+// 				BYTE* p8 = p2 + nPixelSize;
+// 				int dx = abs((*p1 + *p2 + *p3 + *p4 + *p5 + *p6 + *p7 + *p8) - 8 * (*p0));
+
+				int dx = abs((*p3 + *p4 + *p1 + *p2) - 4 * (*p0));
+				p1[0] = p1[1] = p1[2] = max(0, min(dx, 255));
+
+				p0 += nPixelSize;
+				p1 += nPixelSize;	
+				p2 += nPixelSize;
+			}
+		}
+		return;
+
+		for (int y = 0; y < nHeight - 1; y++)
+		{
+			BYTE* p1 = (BYTE*)pGray + y * nLineSize;
+			BYTE* p2 = p1 + nLineSize;
+			for (int x = 0; x < nWidth - 1; x++)
+			{
+				int dx = abs(*p1 - *(p2 + nPixelSize)) + abs(*p2 - *(p1 + nPixelSize));
+				p1[0] = p1[1] = p1[2] = max(0, min(dx, 255));
+				p1 += nPixelSize;
+				p2 += nPixelSize;
+			}
+		}
+	}
+
+	void CImageFilter::CalcEdge(void* pEdge, void* pGray, int nSize, int nWidth, int nHeight, int nBitCount)
+	{
+		int nPixelSize = nBitCount >> 3;
+		int nLineSize = WidthBytes(nWidth*nBitCount);
+		//---------------------------------------------------------------------------------------------
+// 		for (int y = 0; y < nHeight; y++)
+// 		{
+// 			BYTE* p1 = (BYTE*)pGray + y * nLineSize;
+// 			BYTE* p0 = y > 0 ? p1 - nLineSize : p1;
+// 			BYTE* p2 = y < nHeight - 1 ? p1 + nLineSize : p1;
+// 			BYTE* p3 = (BYTE*)pEdge + y * nWidth;
+// 			for (int x = 0; x < nWidth; x++)
+// 			{
+// 				BYTE* p4 = x > 0 ? p1 - 1 : p1;
+// 				BYTE* p5 = x < nWidth - 1 ? p1 + 1 : p1;
+// 				int gx = abs((*p4 + *p5 + *p0 + *p2) - 4 * (*p1));
+// 				*p3++ = max(0, min(gx, 255));
+// 				p0 += nPixelSize;
+// 				p1 += nPixelSize;
+// 				p2 += nPixelSize;
+// 			}
+// 		}
+
+		for (int y = 0; y < nHeight-1; y++)
+		{
+			BYTE* p1 = (BYTE*)pGray + y * nLineSize;
+			BYTE* p2 = p1 + nLineSize;
+			BYTE* p3 = (BYTE*)pEdge + y * nWidth;
+			for (int x = 0; x < nWidth-1; x++)
+			{
+				int dx = abs(*p1 - *(p2 + nPixelSize)) + abs(*p2 - *(p1 + nPixelSize));
+				*p3++ = max(0, min(dx, 255));
+				p1 += nPixelSize;
+				p2 += nPixelSize;
+			}
+		}
+
+	}
+
+	void CImageFilter::CalcMerge(CBitmap* pGraph, CBitmap* pEdge)
+	{
+		int nWidth = pGraph->Width();
+		int nHeight = pGraph->Height();
+		int nLineBytes = pGraph->LineSize();
+
+		for (int y = 0; y < nHeight; y++)
+		{
+			BYTE* pG = pGraph->GetBits(0, y);
+			BYTE* pE = pEdge->GetBits(0, y);
+
+			for (int x = 0; x < nWidth; x++)
+			{
+				if (*pE)
+				{
+					*pG = 128;
+				}
+
+				pG++;
+				pE++;
+			}
+		}
+	}
+
+	inline void SetPixel(int x, int y, int c, BYTE* p, int w, int h, int bits, int line)
+	{
+		x = (x<0) ? 0 : ((x>w) ? w : x);
+		y = (y<0) ? 0 : ((y>h) ? h : y);
+		*(p + y * line + x * (bits >> 3)) = c;
+	}
+
+	void CImageFilter::FillRect(int x, int y, int block, int c, BYTE* pData, int nBitCount, int nLineSize)
+	{
+		for (int y0 = y; y0 < y + block; y0++)
+		{
+			BYTE* p = pData + y0 * nLineSize + x * (nBitCount >> 3);
+			for (int x0 = x; x0 < x + block; x0++)
+			{
+				*p = c;
+				p += nBitCount >> 3;
+			}
+		}
+	}
+
+	// 基于 Bresenham 算法画填充圆
+	void CImageFilter::FillRound(int x, int y, int r, int c, BYTE* pData, int nWidth, int nHeight, int nBitCount)
+	{
+		int tx = 0, ty = r, d = 3 - 2 * r, color = c, w = nWidth - 1, h = nHeight - 1;
+		int nLineSize = WidthBytes(nWidth*nBitCount);
+
+		while (tx < ty)
+		{
+			// 画水平两点连线(<45度)
+			for (int i = x - ty; i <= x + ty; i++)
+			{
+				SetPixel(i, y - tx, color, pData, w, h, nBitCount, nLineSize);
+				if (tx != 0)	// 防止水平线重复绘制
+				{
+					SetPixel(i, y + tx, color, pData, w, h, nBitCount, nLineSize);
+				}
+			}
+
+			if (d < 0)			// 取上面的点
+			{
+				d += 4 * tx + 6;
+			}
+			else				// 取下面的点
+			{
+				// 画水平两点连线(>45度)
+				for (int i = x - tx; i <= x + tx; i++)
+				{
+					SetPixel(i, y - ty, color, pData, w, h, nBitCount, nLineSize);
+					SetPixel(i, y + ty, color, pData, w, h, nBitCount, nLineSize);
+				}
+
+				d += 4 * (tx - ty) + 10, ty--;
+			}
+
+			tx++;
+		}
+
+		if (tx == ty)			// 画水平两点连线(=45度)
+		{
+			for (int i = x - ty; i <= x + ty; i++)
+			{
+				SetPixel(i, y - tx, color, pData, w, h, nBitCount, nLineSize);
+				SetPixel(i, y + tx, color, pData, w, h, nBitCount, nLineSize);
+			}
+		}
+	}
+
+	void CImageFilter::CalcMerge(CBitmap* pTrimap, CBitmap* pGraph, CBitmap* pEdge)
+	{
+		int nWidth = pGraph->Width();
+		int nHeight = pGraph->Height();
+		int nBitCount = pTrimap->BitCount();
+		int nLineSize = pTrimap->LineSize();
+		int nBlockSize = pTrimap->Width() / pGraph->Width();
+		BYTE* pData = pTrimap->GetBits();
+
+		for (int y = 0; y < nHeight; y++)
+		{
+			BYTE* pG = pGraph->GetBits(0, y);
+			for (int x = 0; x < nWidth; x++)
+			{
+				FillRect(x*nBlockSize, y*nBlockSize, nBlockSize, *pG, pData, nBitCount, nLineSize);
+				pG++;
+			}
+		}
+
+		for (int y = 0; y < nHeight; y++)
+		{
+			BYTE* pE = pEdge->GetBits(0, y);
+			for (int x = 0; x < nWidth; x++)
+			{
+				if (*pE == 255)
+				{
+					int x1 = x * nBlockSize;
+					int y1 = y * nBlockSize;
+					FillRound(x1, y1, 5, 128, pData, nWidth*nBlockSize, nHeight*nBlockSize, nBitCount);
+				}
+				pE++;
+			}
+		}
+	}
+
+
+	void CImageFilter::DarkChannel(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
+	{
+		int nLineSize = WidthBytes(nWidth*nBitCount);
+		for (int y = 0; y < nHeight; y++)
+		{
+			BYTE* p = (BYTE*)pData + y * nLineSize;
+			for (int x = 0; x < nWidth; x++)
+			{
+				p[0] = p[1] = p[2] = min(p[0], min(p[1], p[2]));
+				p += nBitCount >> 3;
+			}
+		}
+	}
+
+	void CImageFilter::RemoveBlock(CBitmap* pGraph, int nMinSize, int nMaxSize, bool bBlackPixel)
 	{
 		if (m_pRegion == NULL)
 		{
@@ -435,23 +650,19 @@ namespace e
 			assert(m_pRegion);
 		}
 
-		m_pRegion->RemoveBlock(pGraph, nMinSize, nMaxSize, true);
+		m_pRegion->RemoveBlock(pGraph, nMinSize, nMaxSize, bBlackPixel);
 	}
 
 	void CImageFilter::RemoveNoise(CBitmap* pGraph)
 	{
-		pGraph->Save(_T("f:\\graph0.bmp"));
-		for (int i = 0; i < 1; i++)
-		{
-			Erosion(pGraph, 0x03);
-			//Erosion(pGraph, 0x03);
-			RemoveBlock(pGraph, 1, 10);
-			Dilation(pGraph, 0x03);
-			//Dilation(pGraph, 0x03);
-			RemoveBlock(pGraph, 30, 50);
-		}
- 		pGraph->Save(_T("f:\\graph1.bmp"));
-		//RemoveBlock(pGraph, 40);
-		//pGraph->Save(_T("f:\\graph2.bmp"));
+			Erosion(pGraph, 0x03, true);
+			RemoveBlock(pGraph, 1, 20, true);
+			Dilation(pGraph, 0x03, true);
+			RemoveBlock(pGraph, 1, 20, true);
+
+ //			Erosion(pGraph, 0x03, false);
+// 			RemoveBlock(pGraph, 1, 10, false);
+//			Dilation(pGraph, 0x03, false);
+// 			RemoveBlock(pGraph, 1, 10, false);
 	}
 }

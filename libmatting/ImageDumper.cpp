@@ -145,6 +145,11 @@ namespace e
 			, NULL);
 	}
 
+	void CImageDumper::Alpha2Text(const TCHAR* pFileName, CBitmap* pAlpha)
+	{
+
+	}
+
 	DWORD CImageDumper::ThreadProc(LPVOID lpParam)
 	{
 		ThreadParams* pThreadInfo = static_cast<ThreadParams*>(lpParam);

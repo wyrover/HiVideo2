@@ -45,11 +45,10 @@ namespace e
 		void OnVideoSave(void);
 		void OnVideoDistance(void);
 		void OnGraphNoise(void);
-
 	protected:
 		CPaintManagerUI m_pm;
 		CVideoDevice* m_pVideoDevice;
-		CVideoMatting* m_pVideoMatting;
+		CVideoMatting2* m_pVideoMatting;
 		CImageEffect* m_pVideoEffect;
 
 		//capture background

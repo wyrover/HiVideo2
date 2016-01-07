@@ -7,6 +7,7 @@ namespace e
 		CImageDumper(void);
 		virtual ~CImageDumper(void);
 		void Difference(const TCHAR* pFileName, CBitmap* pBG, CBitmap* pFG);
+		void Alpha2Text(const TCHAR* pFileName, CBitmap* pAlpha);
 	protected:
 		void CompareImage(CBitmap* pDest, CBitmap* pSrc0, CBitmap* pSrc1);
 		void SaveCompareInfo(const TCHAR* lpFileName, CBitmap* pDiff);

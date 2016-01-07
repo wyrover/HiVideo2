@@ -7,19 +7,20 @@
 
 #include "targetver.h"
 
-#define WIN32_LEAN_AND_MEAN             //  从 Windows 头文件中排除极少使用的信息
+#include <stdio.h>
+#include <tchar.h>
 
 
 
 // TODO:  在此处引用程序需要的其他头文件
-#include <stdlib.h>
-#include <wtypes.h>
-#include <tchar.h>
-#include <assert.h>
 #include "libutils.h"
+#include "libmatting.h"
+using namespace e;
 
 #ifdef _DEBUG
 #pragma comment(lib, "libutilsd.lib")
+#pragma comment(lib, "libmattingd.lib")
 #else
 #pragma comment(lib, "libutils.lib")
+#pragma comment(lib, "libmatting.lib")
 #endif
