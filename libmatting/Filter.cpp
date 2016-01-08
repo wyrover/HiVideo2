@@ -421,32 +421,32 @@ namespace e
 		int nPixelSize = nBitCount >> 3;
 		int nLineSize = WidthBytes(nWidth*nBitCount);
 
-		for (int y = 1; y < nHeight-1; y++)
-		{
-			BYTE* p0 = (BYTE*)pGray + y * nLineSize;
-			BYTE* p1 = p0 - nLineSize;
-			BYTE* p2 = p0 + nLineSize;
-			for (int x = 1; x < nWidth-1; x++)
-			{
-				BYTE* p3 = p0 - nPixelSize;
-				BYTE* p4 = p0 + nPixelSize;
-
-// 				BYTE* p5 = p1 - nPixelSize;
-// 				BYTE* p6 = p1 + nPixelSize;
+// 		for (int y = 1; y < nHeight-1; y++)
+// 		{
+// 			BYTE* p0 = (BYTE*)pGray + y * nLineSize;
+// 			BYTE* p1 = p0 - nLineSize;
+// 			BYTE* p2 = p0 + nLineSize;
+// 			for (int x = 1; x < nWidth-1; x++)
+// 			{
+// 				BYTE* p3 = p0 - nPixelSize;
+// 				BYTE* p4 = p0 + nPixelSize;
 // 
-// 				BYTE* p7 = p2 - nPixelSize;
-// 				BYTE* p8 = p2 + nPixelSize;
-// 				int dx = abs((*p1 + *p2 + *p3 + *p4 + *p5 + *p6 + *p7 + *p8) - 8 * (*p0));
-
-				int dx = abs((*p3 + *p4 + *p1 + *p2) - 4 * (*p0));
-				p1[0] = p1[1] = p1[2] = max(0, min(dx, 255));
-
-				p0 += nPixelSize;
-				p1 += nPixelSize;	
-				p2 += nPixelSize;
-			}
-		}
-		return;
+// // 				BYTE* p5 = p1 - nPixelSize;
+// // 				BYTE* p6 = p1 + nPixelSize;
+// // 
+// // 				BYTE* p7 = p2 - nPixelSize;
+// // 				BYTE* p8 = p2 + nPixelSize;
+// // 				int dx = abs((*p1 + *p2 + *p3 + *p4 + *p5 + *p6 + *p7 + *p8) - 8 * (*p0));
+// 
+// 				int dx = abs((*p3 + *p4 + *p1 + *p2) - 4 * (*p0));
+// 				p1[0] = p1[1] = p1[2] = max(0, min(dx, 255));
+// 
+// 				p0 += nPixelSize;
+// 				p1 += nPixelSize;	
+// 				p2 += nPixelSize;
+// 			}
+// 		}
+// 		return;
 
 		for (int y = 0; y < nHeight - 1; y++)
 		{
@@ -623,21 +623,6 @@ namespace e
 					FillRound(x1, y1, 5, 128, pData, nWidth*nBlockSize, nHeight*nBlockSize, nBitCount);
 				}
 				pE++;
-			}
-		}
-	}
-
-
-	void CImageFilter::DarkChannel(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
-	{
-		int nLineSize = WidthBytes(nWidth*nBitCount);
-		for (int y = 0; y < nHeight; y++)
-		{
-			BYTE* p = (BYTE*)pData + y * nLineSize;
-			for (int x = 0; x < nWidth; x++)
-			{
-				p[0] = p[1] = p[2] = min(p[0], min(p[1], p[2]));
-				p += nBitCount >> 3;
 			}
 		}
 	}

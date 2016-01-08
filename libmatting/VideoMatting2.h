@@ -64,6 +64,7 @@ namespace e
 		int m_nPreprocOption;
 		int m_nDistanceThreshold;
 		int m_nNoiscThreshold;
+		int m_nDifferenThreshold;
 
 		CDifferen* m_pDiffer;
 		CImageFilter* m_pFilter;

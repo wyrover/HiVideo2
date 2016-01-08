@@ -228,9 +228,13 @@ namespace e
 			{
 				nIndex = 0;
 			}
-			else
+			else if(msg.pSender->GetName() == _T("slider_threshold1"))
 			{
 				nIndex = 1;
+			}
+			else
+			{
+				nIndex = 2;
 			}
 
 			auto pSlider = static_cast<DuiLib::CSliderUI*>(msg.pSender);

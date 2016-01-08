@@ -23,6 +23,7 @@
 				<Combo name="com_format_list" float="true" pos="1060,55,1260,80" bkcolor="#FFFFFFFF" />
 				<Slider name="slider_threshold0" float="true" pos="1060,90,1260,115" min="0" max="200" value="30" backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF"/>
 				<Slider name="slider_threshold1" float="true" pos="1060,125,1260,150" min="0" max="200" value="35" backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF"/>
+				<Slider name="slider_threshold2" float="true" pos="1060,160,1260,185" min="0" max="100" value="8" backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF"/>
 				<VerticalLayout name="right_toolbar" width="60" bkcolor="#FFFFFF00" bordercolor="#FF1B4876" bordersize="1">
 					<Button name="btn_video_start" float="true" pos="7,4,55,52" tooltip="启动摄像头" normalimage="video_start.png" hotimage="video_start.png" pushedimage="video_start.pgn"/>
 					<Button name="btn_video_stop"  float="true" pos="7,62,55,110" tooltip="关闭摄像头" normalimage="video_stop.png" hotimage="video_stop.png" pushedimage="video_stop.pgn"/>

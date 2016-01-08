@@ -35,6 +35,7 @@ namespace e
 		, m_nBlockSize(4)
 		, m_nPreprocOption(preproc_undo)
 		, m_nDistanceThreshold(30)
+		, m_nDifferenThreshold(8)
 	{
 		m_pBitmaps = new CBitmap*[m_nNumberOfBitmap];
 		for (int i = 0; i < m_nNumberOfBitmap; i++)
@@ -89,6 +90,8 @@ namespace e
 			m_nDistanceThreshold = nThreshold;
 		else if (nIndex == 1)
 			m_nNoiscThreshold = nThreshold;
+		else if (nIndex == 2)
+			m_nDifferenThreshold = nThreshold;
 
 		if (nIndex == 0)
 			m_pDiffer->SetThreshold(nThreshold);
@@ -252,9 +255,23 @@ namespace e
 		}
 	}
 
-	int CalcDist(int x, int y, BYTE* p, int w, int h, int bits, int line)
+	inline float CalcSampleWeight(int x, int y, BYTE* p0, int w, int h, int bpp, int line, int t)
 	{
-		return 0;
+		BYTE* p1 = (y > 0) ? p0 - line : p0;
+		BYTE* p2 = (y < h - 1) ? p0 + line : p0;
+		BYTE* p3 = (x>0) ? p0 - bpp : p0;
+		BYTE* p4 = (x < w - 1) ? p0 + bpp : p0;
+
+		float dist, sum = 0.0f;
+		dist = rgb_dist(p0, p1);
+		sum += dist < t ? 0 : 1;
+		dist = rgb_dist(p0, p2);
+		sum += dist < t ? 0 : 1;
+		dist = rgb_dist(p0, p3);
+		sum += dist < t ? 0 : 1;
+		dist = rgb_dist(p0, p4);
+		sum += dist < t ? 0 : 1;
+		return sum;
 	}
 
 	void CVideoMatting2::MakeAlpha(CBitmap* pAlpha, CBitmap* pTrimap, CBitmap* pBG, void* pFG)
@@ -262,6 +279,7 @@ namespace e
 		int nWidth = pBG->Width(); 
 		int nHeight = pBG->Height();
 		int nBitCount = pBG->BitCount();
+		int nPixelSize = pBG->PixelSize();
 		int nLineSize = WidthBytes(nWidth*nBitCount);
 
 		pAlpha->Store(pTrimap);
@@ -274,10 +292,21 @@ namespace e
 			{
 				if (*pA == 128)
 				{
-					int nAlpha = rgb_dist(pB[0], pB[1], pB[2], pF[0], pF[1], pF[2]);
-					nAlpha = max(0, min(nAlpha, 255));
-					*pA = (nAlpha < m_nNoiscThreshold) ? 0 : 255;
-					//*pA = nAlpha;
+					// 此处可以分开头发
+// 					int nAlpha = rgb_dist(pB[0], pB[1], pB[2], pF[0], pF[1], pF[2]);
+// 					nAlpha = max(0, min(nAlpha, 255));
+// 					*pA = (nAlpha < m_nNoiscThreshold) ? 0 : 255;
+					//此处可以分开脸
+					float fBWeight = CalcSampleWeight(x, y, pB, nWidth, nHeight, nPixelSize, nLineSize, m_nDifferenThreshold);
+					float fFWeight = CalcSampleWeight(x, y, pF, nWidth, nHeight, nPixelSize, nLineSize, m_nDifferenThreshold);
+					if (fabs(fBWeight - fFWeight) < m_nNoiscThreshold)
+					{
+						*pA = 0;
+					}
+					else
+					{
+						*pA = max(0, min(255, fFWeight / fBWeight * 255));
+					}
 				}
 				else
 				{
@@ -285,8 +314,8 @@ namespace e
 				}
 
 				pA++;
-				pB += nBitCount >> 3;
-				pF += nBitCount >> 3;
+				pB += nPixelSize;
+				pF += nPixelSize;
 			}
 		}
 	}
@@ -320,7 +349,7 @@ namespace e
 
 	void CVideoMatting2::OnSampleProc(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
 	{
- 		m_pFilter->ConvertGray(pData, nSize, nWidth, nHeight, nBitCount);
+		m_pFilter->ConvertGray(pData, nSize, nWidth, nHeight, nBitCount);
 		m_pFilter->CalcEdge(pData, nSize, nWidth, nHeight, nBitCount);
 		return;
 		CBitmap* pBB = GetBitmap(bg_block);
@@ -354,7 +383,7 @@ namespace e
 		MakeAlpha(pAlpha, pTrimap, pBG, pData);
 		pAlpha->Save(_T("f:\\alpha.bmp"));
 
-		MakeMatting(pData, pAlpha, NULL);
+		MakeMatting(pData, pAlpha, pBG);
 	}
 
 	void CVideoMatting2::OnSampleSave(TCHAR* pFileName)

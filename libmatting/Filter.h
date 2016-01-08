@@ -26,7 +26,6 @@ namespace e
 		void CalcAlpha(CBitmap* pAlpha, CBitmap* pTrimap, CBitmap* pBG, CBitmap* pFG);
 		void FillRect(int x, int y, int size, int c, BYTE* pData, int nBitCount, int nLineSize);
 		void FillRound(int x, int y, int r, int c, BYTE* pData, int nWidth, int nHeight, int nBitCount);
-		void DarkChannel(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
 	protected:
 		void CalcKernals(float m_fSigma);
 		void Convolve(void* pSrc, void* pDst, int nWidth, int nHeight, int nBitCount);
