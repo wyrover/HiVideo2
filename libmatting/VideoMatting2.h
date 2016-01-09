@@ -31,7 +31,7 @@ namespace e
 	class CVideoMatting2
 	{
 	public:
-		CVideoMatting2();
+		CVideoMatting2(void);
 		virtual ~CVideoMatting2();
 		bool Initialize(int nWidth, int nHeight, int nBitCount);
 		void SetMattingMode(MattingMode eMode);

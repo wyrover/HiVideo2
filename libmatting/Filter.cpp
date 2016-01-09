@@ -493,6 +493,7 @@ namespace e
 			for (int x = 0; x < nWidth-1; x++)
 			{
 				int dx = abs(*p1 - *(p2 + nPixelSize)) + abs(*p2 - *(p1 + nPixelSize));
+				//int dx = atan((float)abs(*p2 - *(p1 + nPixelSize)) / abs(*p1 - *(p2 + nPixelSize)));
 				*p3++ = max(0, min(dx, 255));
 				p1 += nPixelSize;
 				p2 += nPixelSize;

@@ -224,21 +224,28 @@ namespace e
 		else if (msg.sType == _T("valuechanged"))
 		{
 			int nIndex = 0;
+			DuiLib::CLabelUI* pLabel = NULL;
 			if (msg.pSender->GetName() == _T("slider_threshold0"))
 			{
 				nIndex = 0;
+				pLabel = static_cast<DuiLib::CLabelUI*>(m_pm.FindControl(_T("label_0")));
 			}
 			else if(msg.pSender->GetName() == _T("slider_threshold1"))
 			{
 				nIndex = 1;
+				pLabel = static_cast<DuiLib::CLabelUI*>(m_pm.FindControl(_T("label_1")));
 			}
-			else
+			else  if (msg.pSender->GetName() == _T("slider_threshold2"))
 			{
 				nIndex = 2;
+				pLabel = static_cast<DuiLib::CLabelUI*>(m_pm.FindControl(_T("label_2")));
 			}
 
 			auto pSlider = static_cast<DuiLib::CSliderUI*>(msg.pSender);
 			m_pVideoMatting->SetMattingThreshold(nIndex, pSlider->GetValue());
+			TCHAR szText[256] = { 0 };
+			_stprintf_s(szText, _T("val=%d"), pSlider->GetValue());
+			pLabel->SetText(szText);
 		}
 	}
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

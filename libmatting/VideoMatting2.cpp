@@ -34,8 +34,9 @@ namespace e
 		: m_nNumberOfBitmap(_max_count_)
 		, m_nBlockSize(4)
 		, m_nPreprocOption(preproc_undo)
-		, m_nDistanceThreshold(30)
-		, m_nDifferenThreshold(8)
+		, m_nDistanceThreshold(20)
+		, m_nNoiscThreshold(25)
+		, m_nDifferenThreshold(25)
 	{
 		m_pBitmaps = new CBitmap*[m_nNumberOfBitmap];
 		for (int i = 0; i < m_nNumberOfBitmap; i++)
@@ -261,17 +262,23 @@ namespace e
 		BYTE* p2 = (y < h - 1) ? p0 + line : p0;
 		BYTE* p3 = (x>0) ? p0 - bpp : p0;
 		BYTE* p4 = (x < w - 1) ? p0 + bpp : p0;
+// 		BYTE* p5 = (x > 0) ? p1 - bpp : p1;
+// 		BYTE* p6 = (x < w - 1) ? p1 + bpp : p1;
+// 		BYTE* p7 = (x > 0) ? p2 - bpp : p2;
+// 		BYTE* p8 = (x < w - 1) ? p2 + bpp : p2;
 
-		float dist, sum = 0.0f;
-		dist = rgb_dist(p0, p1);
-		sum += dist < t ? 0 : 1;
-		dist = rgb_dist(p0, p2);
-		sum += dist < t ? 0 : 1;
-		dist = rgb_dist(p0, p3);
-		sum += dist < t ? 0 : 1;
-		dist = rgb_dist(p0, p4);
-		sum += dist < t ? 0 : 1;
-		return sum;
+// 		float sw[9] = { 
+// 			0.5000f, 0.0625f, 0.0625f, 
+// 			0.0625f, 0.0625f, 0.0625f, 
+// 			0.0625f, 0.0625f, 0.0625f 
+// 		};
+
+		float sum = 0.0f;
+		sum += rgb_dist(p0, p1);
+		sum += rgb_dist(p0, p2);
+		sum += rgb_dist(p0, p3);
+		sum += rgb_dist(p0, p4);
+		return sum/4;
 	}
 
 	void CVideoMatting2::MakeAlpha(CBitmap* pAlpha, CBitmap* pTrimap, CBitmap* pBG, void* pFG)
@@ -281,8 +288,8 @@ namespace e
 		int nBitCount = pBG->BitCount();
 		int nPixelSize = pBG->PixelSize();
 		int nLineSize = WidthBytes(nWidth*nBitCount);
-
 		pAlpha->Store(pTrimap);
+		//第1趟，初步分出边界
 		for (int y = 0; y < nHeight; y++)
 		{
 			BYTE* pB = pBG->GetBits(0, y);
@@ -293,24 +300,54 @@ namespace e
 				if (*pA == 128)
 				{
 					// 此处可以分开头发
-// 					int nAlpha = rgb_dist(pB[0], pB[1], pB[2], pF[0], pF[1], pF[2]);
-// 					nAlpha = max(0, min(nAlpha, 255));
-// 					*pA = (nAlpha < m_nNoiscThreshold) ? 0 : 255;
-					//此处可以分开脸
+					int dx = rgb_diff(pB[0], pB[1], pB[2], pF[0], pF[1], pF[2]);
+					dx = max(0, min(dx, 255));
+					*pA = (dx < m_nNoiscThreshold) ? 0 : dx;
+				}
+				else
+				{
+				//	*pA = 0;
+				}
+
+				pA++;
+				pB += nPixelSize;
+				pF += nPixelSize;
+			}
+		}
+		return;
+// 		//第二步，精准定位边界
+// 		for (int y = 0; y < nHeight-1; y++)
+// 		{
+// 			BYTE* p0 = pAlpha->GetBits(0, y);
+// 			BYTE* p1 = p0 + nWidth;
+// 			for (int x = 0; x < nWidth-1; x++)
+// 			{
+// 				int dx = abs(*p0 - *(p1 + nPixelSize)) + abs(*p1 - *(p0 + nPixelSize));
+// 				*p0 = max(0, min(dx, 255));
+// 				p0++; p1++;
+// 			}
+// 		}
+
+		//第3步，对边界进行详细处理
+		for (int y = 0; y < nHeight; y++)
+		{
+			BYTE* pB = pBG->GetBits(0, y);
+			BYTE* pF = (BYTE*)pFG + y * nLineSize;
+			BYTE* pA = pAlpha->GetBits(0, y);
+			for (int x = 0; x < nWidth; x++)
+			{
+				if (*pA == 255)
+				{
 					float fBWeight = CalcSampleWeight(x, y, pB, nWidth, nHeight, nPixelSize, nLineSize, m_nDifferenThreshold);
 					float fFWeight = CalcSampleWeight(x, y, pF, nWidth, nHeight, nPixelSize, nLineSize, m_nDifferenThreshold);
-					if (fabs(fBWeight - fFWeight) < m_nNoiscThreshold)
+					if (fabs(fBWeight - fFWeight) < m_nDifferenThreshold)
 					{
-						*pA = 0;
+						*pA = 255;
 					}
 					else
 					{
 						*pA = max(0, min(255, fFWeight / fBWeight * 255));
 					}
-				}
-				else
-				{
-				//	*pA = 0;
 				}
 
 				pA++;
@@ -349,9 +386,9 @@ namespace e
 
 	void CVideoMatting2::OnSampleProc(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
 	{
-		m_pFilter->ConvertGray(pData, nSize, nWidth, nHeight, nBitCount);
-		m_pFilter->CalcEdge(pData, nSize, nWidth, nHeight, nBitCount);
-		return;
+// 		m_pFilter->ConvertGray(pData, nSize, nWidth, nHeight, nBitCount);
+// 		m_pFilter->CalcEdge(pData, nSize, nWidth, nHeight, nBitCount);
+// 		return;
 		CBitmap* pBB = GetBitmap(bg_block);
 		CBitmap* pBG = GetBitmap(background);
 		CBitmap* pFG = GetBitmap(foreground);
