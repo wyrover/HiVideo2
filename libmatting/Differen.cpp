@@ -60,10 +60,24 @@ namespace e
 		return x * x;
 	}
 
-	inline int distance(int r0, int b0, int g0, int r1, int b1, int g1)
+	inline int rgb_diff(BYTE* p0, BYTE* p1)
 	{
-		return abs(r0 - r1) + abs(g0 - g1) + abs(b0 - b1);
-		//return (int)sqrt(square(r0 - r1) + square(b0 - b1) + square(g0 - g1));
+		return abs(p0[0] - p1[0]) + abs(p0[1] - p1[1]) + abs(p0[2] - p1[2]);
+	}
+
+	inline int rgb_diff(int r0, int b0, int g0, int r1, int b1, int g1)
+	{
+		return abs(r0 - r1) + abs(b0 - b1) + abs(g0 - g1);
+	}
+
+	inline int rgb_dist(BYTE* p0, BYTE* p1)
+	{
+		return (int)sqrt(square(p0[0] - p1[0]) + square(p0[1] - p1[1]) + square(p0[2] - p1[2]));
+	}
+
+	inline int rgb_dist(int r0, int b0, int g0, int r1, int b1, int g1)
+	{
+		return (int)sqrt(square(r0 - r1) + square(b0 - b1) + square(g0 - g1));
 	}
 
 	CDifferen::CDifferen()
@@ -94,7 +108,7 @@ namespace e
 			BYTE* pA = pAlpha->GetBits(0, y);
 			for (int x = 0; x < nWidth; x++)
 			{
-				int dx = max(0, min(distance(pB[0], pB[1], pB[2], pF[0], pF[1], pF[2]), 255));
+				int dx = max(0, min(rgb_dist(pB[0], pB[1], pB[2], pF[0], pF[1], pF[2]), 255));
 				*pA++ = dx > m_nThreshold ? dx : 0;
 				pB += nBitCount >> 3;
 				pF += nBitCount >> 3;
@@ -112,7 +126,7 @@ namespace e
 			BYTE* pA = (BYTE*)pData + y * nLineBytes;
 			for (int x = 0; x < nWidth; x++)
 			{
-				int dx = max(0, min(distance(pB[0], pB[1], pB[2], pF[0], pF[1], pF[2]), 255));
+				int dx = max(0, min(rgb_dist(pB[0], pB[1], pB[2], pF[0], pF[1], pF[2]), 255));
 				pA[0] = pA[1] = pA[2] = dx <= m_nThreshold ? 0 : dx;
 				pA += nBitCount >> 3;
 				pB += nBitCount >> 3;
@@ -142,6 +156,57 @@ namespace e
 				pA += nBitCount >> 3;
 				pB += nBitCount >> 3;
 				pF += nBitCount >> 3;
+			}
+		}
+	}
+
+	inline int sample_weight(int x, int y, BYTE* p0, int w, int h, int bpp, int line, int t)
+	{
+		BYTE* p1 = (y > 0) ? p0 - line : p0;
+		BYTE* p2 = (y < h - 1) ? p0 + line : p0;
+		BYTE* p3 = (x > 0) ? p0 - bpp : p0;
+		BYTE* p4 = (x < w - 1) ? p0 + bpp : p0;
+
+		BYTE* p5 = (x > 0) ? p1 - bpp : p1;
+		BYTE* p6 = (x < w - 1) ? p1 + bpp : p1;
+		BYTE* p7 = (x > 0) ? p2 - bpp : p2;
+		BYTE* p8 = (x < w - 1) ? p2 + bpp : p2;
+
+		int dist = 0, sum = 0, count = 0;
+		dist = rgb_diff(p0, p1);
+		if (dist >= t) { sum += dist; count++; }
+		dist = rgb_diff(p0, p2);
+		if (dist >= t) { sum += dist; count++; }
+		dist = rgb_diff(p0, p3);
+		if (dist >= t) { sum += dist; count++; }
+		dist = rgb_diff(p0, p4);
+		if (dist >= t) { sum += dist; count++; }
+
+// 		dist = rgb_diff(p0, p5);
+// 		if (dist >= t) { sum += dist; count++; }
+// 		dist = rgb_diff(p0, p6);
+// 		if (dist >= t) { sum += dist; count++; }
+// 		dist = rgb_diff(p0, p7);
+// 		if (dist >= t) { sum += dist; count++; }
+// 		dist = rgb_diff(p0, p8);
+// 		if (dist >= t) { sum += dist; count++; }
+
+		return count > 0 ? sum / count : 0;
+	}
+
+	void CDifferen::SampleWeight(void* pData, int nWidth, int nHeight, int nBitCount, int nThreshold)
+	{
+		int nPixelSize = nBitCount >> 3;
+		int nLineSize = WidthBytes(nWidth*nBitCount);
+
+		for (int y = 0; y < nHeight; y++)
+		{
+			BYTE* p = (BYTE*)pData + y * nLineSize;
+			for (int x = 0; x < nWidth; x++)
+			{
+				int dx = sample_weight(x, y, p, nWidth, nHeight, nPixelSize, nLineSize, nThreshold);
+				p[0] = p[1] = p[2] = max(0, min(dx/3, 255));
+				p += nPixelSize;
 			}
 		}
 	}

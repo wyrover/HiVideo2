@@ -37,7 +37,7 @@ namespace e
 		void SetMattingMode(MattingMode eMode);
 		void SetMattingThreshold(int nIndex, int nThreshold);
 		void SetBackground(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
-		void SetVirtualBGImage(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
+		void SetVirtualBackground(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
 		void RemoveNoiscEnable(bool bEnable);
 		void OnSampleProc(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
 		void OnSampleSave(TCHAR* pFileName);
@@ -53,8 +53,10 @@ namespace e
 		void MakeGraph(CBitmap* pGraph, CBitmap* pBG, CBitmap* pFG);
 		void FillRect(int x, int y, int size, int c, BYTE* pData, int nBitCount, int nLineSize);
 		void FillRound(int x, int y, int r, BYTE* pData, int nWidth, int nHeight, int nBitCount);
-		void MakeAlpha(CBitmap* pAlpha, CBitmap* pTrimap, CBitmap* pBG, void* pFG);
-		void MakeMatting(void* pData, CBitmap* pAlpha, CBitmap* pVG);
+		void MakeAlphaSimple(CBitmap* pAlpha, CBitmap* pTrimap, CBitmap* pBG, void* pFG);
+		void MakeAlphaNormal(CBitmap* pAlpha, CBitmap* pTrimap, CBitmap* pBG, void* pFG);
+		void MakeMatting(void* pData, int nWidth, int nHeight, int nBitCount, CBitmap* pAlpha, CBitmap* pVG);
+		void DoSampleMatting(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
 	protected:
 		int m_nNumberOfBitmap;
 		CBitmap** m_pBitmaps;
@@ -64,7 +66,7 @@ namespace e
 		int m_nPreprocOption;
 		int m_nDistanceThreshold;
 		int m_nNoiscThreshold;
-		int m_nDifferenThreshold;
+		int m_nAlphaThreshold;
 
 		CDifferen* m_pDiffer;
 		CImageFilter* m_pFilter;

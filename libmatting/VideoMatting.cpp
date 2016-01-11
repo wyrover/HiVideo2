@@ -95,7 +95,7 @@ namespace e
 		m_nState &= STATE_SET_RBG;
 	}
 
-	void CVideoMatting::SetVirtualBGImage(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
+	void CVideoMatting::SetVirtualBackground(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
 	{
 		//GetBitmap(virtual_bg_image)->Store(pData, nWidth, nHeight, nBitCount);
 		m_nState &= STATE_SET_VBG;

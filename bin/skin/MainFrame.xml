@@ -21,11 +21,11 @@
 				-->
 				<Combo name="com_device_list" float="true" pos="1060,20,1260,45" bkcolor="#FFFFFFFF" />
 				<Combo name="com_format_list" float="true" pos="1060,55,1260,80" bkcolor="#FFFFFFFF" />
-				<Slider name="slider_threshold0" float="true" pos="1060,90,1260,115" min="0" max="200" value="20" backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF"/>
+				<Slider name="slider_threshold0" float="true" pos="1060,90,1260,115" min="0" max="200" value="20" backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF" thumbimage="file='slider_thumb_nor.png' mask='0xffffffff'" thumbhotimage="file='slider_thumb_nor.png' mask='0xffffffff'" thumbpushedimage="file='slider_thumb_nor.png' mask='0xffffffff'" thumbsize="18,18" />
 				<Label name="label_0" float="true" pos="1270,90,1330,115" bkcolor="#ffffffff"/>
-				<Slider name="slider_threshold1" float="true" pos="1060,125,1260,150" min="0" max="200" value="25" backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF"/>
+				<Slider name="slider_threshold1" float="true" pos="1060,125,1260,150" min="0" max="200" value="25"		backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF" thumbimage="file='slider_thumb_nor.png' mask='0xffffffff'" thumbhotimage="file='slider_thumb_nor.png' mask='0xffffffff'" thumbpushedimage="file='slider_thumb_nor.png' mask='0xffffffff'" thumbsize="18,18" />
 				<Label name="label_1" float="true" pos="1270,125,1330,150" bkcolor="#ffffffff"/>
-				<Slider name="slider_threshold2" float="true" pos="1060,160,1260,185" min="0" max="100" value="8" backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF"/>
+				<Slider name="slider_threshold2" float="true" pos="1060,160,1260,185" min="0" max="100" value="8" backimage="progress_back.png" foreimage="progress_fore.png" bkcolor="#FFFF00FF" thumbimage="file='slider_thumb_nor.png' mask='0xffffffff'" thumbhotimage="file='slider_thumb_nor.png' mask='0xffffffff'" thumbpushedimage="file='slider_thumb_nor.png' mask='0xffffffff'" thumbsize="18,18" />
 				<Label name="label_2" float="true" pos="1270,160,1330,185" bkcolor="#ffffffff"/>
 				<VerticalLayout name="right_toolbar" width="60" bkcolor="#FFFFFF00" bordercolor="#FF1B4876" bordersize="1">
 					<Button name="btn_video_start" float="true" pos="7,4,55,52" tooltip="启动摄像头" normalimage="video_start.png" hotimage="video_start.png" pushedimage="video_start.pgn"/>

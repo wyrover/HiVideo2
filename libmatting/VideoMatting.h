@@ -38,7 +38,7 @@ namespace e
 		virtual ~CVideoMatting(void);
 		bool Initialize(int nWidth, int nHeight, int nBitCount);
 		void SetBackground(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
-		void SetVirtualBGImage(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
+		void SetVirtualBackground(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);
 		void SetMattingThreshold(int nIndex, int nThreshold);
 		void RemoveNoiscEnable(bool bEnable);
 		void OnSampleProc(void* pData, int nSize, int nWidth, int nHeight, int nBitCount);

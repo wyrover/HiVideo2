@@ -49,7 +49,6 @@ namespace e
 		CPaintManagerUI m_pm;
 		CVideoDevice* m_pVideoDevice;
 		CVideoMatting2* m_pVideoMatting;
-		CImageEffect* m_pVideoEffect;
 
 		//capture background
 		enum {WaitCaptureBG, StartCaptureBG, MattingVideo};

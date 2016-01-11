@@ -34,9 +34,6 @@ namespace e
 		m_pVideoMatting = new CVideoMatting2();
 		ASSERT(m_pVideoMatting);
 
-		m_pVideoEffect = new CImageEffect();
-		ASSERT(m_pVideoEffect);
-
 		m_dwState = WaitCaptureBG;
 	}
 
@@ -44,7 +41,6 @@ namespace e
 	{
 		if (m_pVideoDevice) delete m_pVideoDevice;
 		if (m_pVideoMatting) delete m_pVideoMatting;
-		if (m_pVideoEffect) delete m_pVideoEffect;
 	}
 
 	void CMainWindow::Init(void)
@@ -327,7 +323,7 @@ namespace e
 #endif
 			//init & set virtual background
 			m_pVideoMatting->Initialize(nWidth, nHeight, nBitCount);
-			m_pVideoMatting->SetVirtualBGImage(pData, nSize, nWidth, nHeight, nBitCount);
+			m_pVideoMatting->SetVirtualBackground(pData, nSize, nWidth, nHeight, nBitCount);
 			//set real background
 #ifdef _DEBUG
 			CBitmap bg(_T("f:\\bg.bmp"));
@@ -390,11 +386,7 @@ namespace e
 	//video effect
 	void CMainWindow::OnVideoType(void)
 	{
-		static int nType = 0;
-		m_pVideoEffect->SetType(nType);
-		nType = !nType;
 
-		OnVideoSave();
 	}
 
 	void CMainWindow::OnVideoSave(void)
@@ -409,7 +401,9 @@ namespace e
 
 	void CMainWindow::OnVideoDistance(void)
 	{
-
+		static bool bFlag = true;
+		m_pVideoMatting->SetMattingMode(bFlag ? NormalMatting : SimpleMatting);
+		bFlag = !bFlag;
 	}
 
 	void CMainWindow::OnGraphNoise(void)

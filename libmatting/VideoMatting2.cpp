@@ -34,9 +34,10 @@ namespace e
 		: m_nNumberOfBitmap(_max_count_)
 		, m_nBlockSize(4)
 		, m_nPreprocOption(preproc_undo)
+		, m_nMattingMode(SimpleMatting)
 		, m_nDistanceThreshold(20)
 		, m_nNoiscThreshold(25)
-		, m_nDifferenThreshold(25)
+		, m_nAlphaThreshold(25)
 	{
 		m_pBitmaps = new CBitmap*[m_nNumberOfBitmap];
 		for (int i = 0; i < m_nNumberOfBitmap; i++)
@@ -92,7 +93,7 @@ namespace e
 		else if (nIndex == 1)
 			m_nNoiscThreshold = nThreshold;
 		else if (nIndex == 2)
-			m_nDifferenThreshold = nThreshold;
+			m_nAlphaThreshold = nThreshold;
 
 		if (nIndex == 0)
 			m_pDiffer->SetThreshold(nThreshold);
@@ -152,7 +153,7 @@ namespace e
 		PreprocessImage(pBB);
 	}
 
-	void CVideoMatting2::SetVirtualBGImage(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
+	void CVideoMatting2::SetVirtualBackground(void* pData, int nSize, int nWidth, int nHeight, int nBitCount)
 	{
 
 	}
@@ -256,34 +257,75 @@ namespace e
 		}
 	}
 
-	inline float CalcSampleWeight(int x, int y, BYTE* p0, int w, int h, int bpp, int line, int t)
+	inline int around_diff(int x, int y, BYTE* p0, int w, int h, int bpp, int line, int t)
 	{
 		BYTE* p1 = (y > 0) ? p0 - line : p0;
 		BYTE* p2 = (y < h - 1) ? p0 + line : p0;
 		BYTE* p3 = (x>0) ? p0 - bpp : p0;
 		BYTE* p4 = (x < w - 1) ? p0 + bpp : p0;
+
 // 		BYTE* p5 = (x > 0) ? p1 - bpp : p1;
 // 		BYTE* p6 = (x < w - 1) ? p1 + bpp : p1;
 // 		BYTE* p7 = (x > 0) ? p2 - bpp : p2;
 // 		BYTE* p8 = (x < w - 1) ? p2 + bpp : p2;
 
-// 		float sw[9] = { 
-// 			0.5000f, 0.0625f, 0.0625f, 
-// 			0.0625f, 0.0625f, 0.0625f, 
-// 			0.0625f, 0.0625f, 0.0625f 
-// 		};
-
-		float sum = 0.0f;
-		sum += rgb_dist(p0, p1);
-		sum += rgb_dist(p0, p2);
-		sum += rgb_dist(p0, p3);
-		sum += rgb_dist(p0, p4);
-		return sum/4;
+		int dist = 0, sum = 0, count = 0;
+		dist = rgb_dist(p0, p1);
+		if (dist <= t) { sum += dist; count++; }
+		dist = rgb_dist(p0, p2);
+		if (dist <= t) { sum += dist; count++; }
+		dist = rgb_dist(p0, p3);
+		if (dist <= t) { sum += dist; count++; }
+		dist = rgb_dist(p0, p4);
+		if (dist <= t) { sum += dist; count++; }
+		return count > 0 ? sum / count : 0;
 	}
 
-	void CVideoMatting2::MakeAlpha(CBitmap* pAlpha, CBitmap* pTrimap, CBitmap* pBG, void* pFG)
+	void CVideoMatting2::MakeAlphaSimple(CBitmap* pAlpha, CBitmap* pTrimap, CBitmap* pBG, void* pFG)
 	{
-		int nWidth = pBG->Width(); 
+		int nWidth = pBG->Width();
+		int nHeight = pBG->Height();
+		int nBitCount = pBG->BitCount();
+		int nPixelSize = pBG->PixelSize();
+		int nLineSize = WidthBytes(nWidth*nBitCount);
+		pAlpha->Store(pTrimap);
+		//第1趟，初步分出边界
+		for (int y = 0; y < nHeight; y++)
+		{
+			BYTE* pB = pBG->GetBits(0, y);
+			BYTE* pF = (BYTE*)pFG + y * nLineSize;
+			BYTE* pA = pAlpha->GetBits(0, y);
+			for (int x = 0; x < nWidth; x++)
+			{
+				if (*pA == 128)
+				{
+					int dx = rgb_dist(pB, pF);
+					dx = max(0, min(dx, 255));
+					*pA = (dx < m_nAlphaThreshold) ? 0 : dx;
+				}
+
+				pA++;
+				pB += nPixelSize;
+				pF += nPixelSize;
+			}
+		}
+	}
+
+	inline int CalcSampleAlpha(int x, int y, BYTE* pBG, BYTE* pFG, int w, int h, int bpp, int line, int dt)
+	{
+		int diff = rgb_diff(pBG, pFG);
+		if (diff <= dt) return 0;
+		int dx1 = around_diff(x, y, pBG, w, h, bpp, line, diff - dt > 30 ? dt : diff);
+		int dx2 = around_diff(x, y, pFG, w, h, bpp, line, diff - dt > 30 ? dt : diff);
+		if (dx1 == dx2) return 128;
+		if (dx1 < dx2) return max(0, min(dx1 * 255 / dx2, 255));
+		if (dx1 > dx2) return max(0, min(dx2 * 255 / dx1, 255));
+		return 0;
+	}
+
+	void CVideoMatting2::MakeAlphaNormal(CBitmap* pAlpha, CBitmap* pTrimap, CBitmap* pBG, void* pFG)
+	{
+		int nWidth = pBG->Width();
 		int nHeight = pBG->Height();
 		int nBitCount = pBG->BitCount();
 		int nPixelSize = pBG->PixelSize();
@@ -300,13 +342,13 @@ namespace e
 				if (*pA == 128)
 				{
 					// 此处可以分开头发
-					int dx = rgb_diff(pB[0], pB[1], pB[2], pF[0], pF[1], pF[2]);
+					int dx = rgb_dist(pB, pF);
 					dx = max(0, min(dx, 255));
 					*pA = (dx < m_nNoiscThreshold) ? 0 : dx;
 				}
 				else
 				{
-				//	*pA = 0;
+					//	*pA = 0;
 				}
 
 				pA++;
@@ -338,16 +380,7 @@ namespace e
 			{
 				if (*pA == 255)
 				{
-					float fBWeight = CalcSampleWeight(x, y, pB, nWidth, nHeight, nPixelSize, nLineSize, m_nDifferenThreshold);
-					float fFWeight = CalcSampleWeight(x, y, pF, nWidth, nHeight, nPixelSize, nLineSize, m_nDifferenThreshold);
-					if (fabs(fBWeight - fFWeight) < m_nDifferenThreshold)
-					{
-						*pA = 255;
-					}
-					else
-					{
-						*pA = max(0, min(255, fFWeight / fBWeight * 255));
-					}
+					*pA = CalcSampleAlpha(x, y, pB, pF, nWidth, nHeight, nPixelSize, nLineSize, m_nAlphaThreshold);
 				}
 
 				pA++;
@@ -357,28 +390,34 @@ namespace e
 		}
 	}
 
-	inline void CalcMatting(BYTE* pF, BYTE* pV, BYTE a)
+	inline void Blend(BYTE* pF, BYTE* pV, BYTE a)
 	{
 		pF[0] = a * pF[0] / 255 + (255 - a)*pV[0] / 255;
 		pF[1] = a * pF[1] / 255 + (255 - a)*pV[1] / 255;
 		pF[2] = a * pF[2] / 255 + (255 - a)*pV[2] / 255;
 	}
 
-	void CVideoMatting2::MakeMatting(void* pData, CBitmap* pAlpha, CBitmap* pVG)
+	void CVideoMatting2::MakeMatting(void* pData, int nWidth, int nHeight, int nBitCount, CBitmap* pAlpha, CBitmap* pVG)
 	{
-		int nWidth = pAlpha->Width();
-		int nHeight = pAlpha->Height();
-		int nBitCount = 32;
+		int nPixelSize = nBitCount >> 3;
 		int nLineSize = WidthBytes(nWidth*nBitCount);
 
-		int nColor = 0xff00ff00;
+		int G = 0xff00ff00, R = 0xffffff00;
 		for (int y = 0; y < nHeight; y++)
 		{
 			BYTE* pF = (BYTE*)pData + y * nLineSize;
 			BYTE* pA = pAlpha->GetBits(0, y);
 			for (int x = 0; x < nWidth; x++)
 			{
-				CalcMatting(pF, (BYTE*)&nColor, *pA++);
+				int nAlpha = *pA++;
+				if (nAlpha == 0x00)
+				{
+					Blend(pF, (BYTE*)&G, nAlpha);
+				}
+				else if (nAlpha != 0xff)
+				{
+					Blend(pF, (BYTE*)&R, nAlpha);
+				}
 				pF += nBitCount >> 3;
 			}
 		}
@@ -393,11 +432,10 @@ namespace e
 		CBitmap* pBG = GetBitmap(background);
 		CBitmap* pFG = GetBitmap(foreground);
 #if 0
-		m_pDiffer->Sub(pData, pBG->GetBits(), pData, nWidth, nHeight, nBitCount);
+		m_pDiffer->SampleWeight(pData, nWidth, nHeight, nBitCount, m_nDistanceThreshold);
 		return;
 #endif
 		pFG->Store(pData, nWidth, nHeight, nBitCount);
-		//pFG->Save(_T("f:\\fg.bmp"));
 		//preprocess
 		PreprocessImage(pFG);
 		//make graph
@@ -417,15 +455,19 @@ namespace e
 		pTrimap->Save(_T("f:\\trimap.bmp"));
 		//make alpha
 		CBitmap* pAlpha = GetBitmap(alpha);
-		MakeAlpha(pAlpha, pTrimap, pBG, pData);
+		if (m_nMattingMode == SimpleMatting)
+			MakeAlphaSimple(pAlpha, pTrimap, pBG, pData);
+		else
+			MakeAlphaNormal(pAlpha, pTrimap, pBG, pData);
 		pAlpha->Save(_T("f:\\alpha.bmp"));
-
-		MakeMatting(pData, pAlpha, pBG);
+		//make matting
+		MakeMatting(pData, nWidth, nHeight, nBitCount, pAlpha, NULL);
 	}
 
 	void CVideoMatting2::OnSampleSave(TCHAR* pFileName)
 	{
-
+		CBitmap* pFG = GetBitmap(foreground);
+		pFG->Save(pFileName);
 	}
 
 	void CVideoMatting2::Reset(void)
